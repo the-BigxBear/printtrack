@@ -16,7 +16,7 @@ tailwind.config = {
   body { background-color: var(--paper); }
   .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
   .table-container::-webkit-scrollbar-thumb { background: rgba(34,31,27,.2); border-radius: 4px; }
-  .status-select { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.875rem; }
+  .status-select { background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.8rem; cursor: pointer;}
 </style>
 </head>
 <body class="min-h-screen p-4 sm:p-6 lg:p-10 text-ink">
@@ -25,24 +25,32 @@ tailwind.config = {
     در حال بررسی دسترسی...
 </div>
 
-<div id="appContainer" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-ink/5 p-6 hidden">
+<div id="appContainer" class="max-w-[95%] mx-auto bg-white rounded-2xl shadow-xl border border-ink/5 p-6 hidden">
   
-  <div class="flex justify-between items-center mb-8 border-b border-ink/10 pb-4">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-ink/10 pb-4">
     <div>
       <h1 class="text-2xl font-black text-ink">لیست سفارشات ثبت شده</h1>
-      <a href="index.html" class="text-sm text-accent hover:underline mt-1 inline-block">← بازگشت به ثبت سفارش جدید</a>
+      <a href="index.html" class="text-sm text-accent hover:underline mt-1 inline-block font-bold">← بازگشت به ثبت سفارش جدید</a>
     </div>
-    <button id="logoutBtn" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold py-2 px-4 rounded-lg text-sm transition">خروج از سیستم</button>
+    <button id="logoutBtn" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold py-2 px-4 rounded-lg text-sm transition shadow-sm">خروج از سیستم</button>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-paper/50 p-4 rounded-xl border border-ink/5">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-paper/50 p-4 rounded-xl border border-ink/5 items-end">
     <div>
-      <label class="block text-xs font-bold mb-1 opacity-70">جستجو (نام، شماره قبض)</label>
-      <input type="text" id="searchInput" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none" placeholder="مثال: 1024 یا علی...">
+      <label class="block text-xs font-bold mb-1 opacity-70">جستجو (قبض، مشتری، طراح، چاپخانه)</label>
+      <input type="text" id="searchInput" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white" placeholder="مثال: علی، طراح ۱، 1024...">
     </div>
     <div>
-      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت کار</label>
-      <select id="filterStatus" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none">
+      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت مالی</label>
+      <select id="filterSettlement" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white">
+        <option value="all">همه موارد</option>
+        <option value="تسویه نشده">تسویه نشده</option>
+        <option value="تسویه شده">تسویه شده</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت سفارش</label>
+      <select id="filterStatus" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white">
         <option value="all">همه موارد</option>
         <option value="سفارش داده شده">سفارش داده شده</option>
         <option value="در پروسه تولید">در پروسه تولید</option>
@@ -51,29 +59,34 @@ tailwind.config = {
         <option value="کنسل شده">کنسل شده</option>
       </select>
     </div>
-    <div class="flex items-end">
-      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition">بروزرسانی لیست</button>
+    <div>
+      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition shadow-md shadow-accent/20">بروزرسانی لیست</button>
     </div>
   </div>
 
   <div class="table-container overflow-x-auto border border-ink/10 rounded-xl">
-    <table class="w-full text-right text-sm whitespace-nowrap">
+    <table class="w-full text-right text-sm whitespace-nowrap min-w-[1000px]">
       <thead class="bg-ink text-white">
         <tr>
-          <th class="p-3">شماره قبض</th>
-          <th class="p-3">مشتری</th>
-          <th class="p-3">جنس / تیراژ</th>
-          <th class="p-3">تاریخ سفارش / تحویل</th>
-          <th class="p-3">تصاویر</th>
-          <th class="p-3">وضعیت فعلی (قابل تغییر)</th>
-          <th class="p-3 text-center">عملیات</th>
+          <th class="p-3 w-16">قبض</th>
+          <th class="p-3">اطلاعات مشتری</th>
+          <th class="p-3">مشخصات فنی و همکاران</th>
+          <th class="p-3">تاریخ‌ها</th>
+          <th class="p-3 text-center">وضعیت مالی</th>
+          <th class="p-3 text-center">تصاویر</th>
+          <th class="p-3 text-center">وضعیت سفارش</th>
+          <th class="p-3 text-center w-16">حذف</th>
         </tr>
       </thead>
       <tbody id="ordersTableBody" class="divide-y divide-ink/10">
         </tbody>
     </table>
   </div>
+</div>
 
+<div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300" onclick="closeImageModal()">
+  <button class="absolute top-6 right-6 text-white hover:text-red-500 font-bold text-4xl cursor-pointer transition transform hover:scale-110">&times;</button>
+  <img id="modalImage" class="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl border border-white/10" src="" onclick="event.stopPropagation()">
 </div>
 
 <script type="module">
@@ -96,15 +109,14 @@ const db = getFirestore(app);
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
 let allOrders = [];
 
-// بررسی احراز هویت
 onAuthStateChanged(auth, (user) => {
   if (user && user.email === ALLOWED_EMAIL) {
     document.getElementById("authMessage").style.display = "none";
     document.getElementById("appContainer").classList.remove("hidden");
     loadOrders();
-    runAutoCleanup(); // اجرای پاکسازی خودکار
+    runAutoCleanup();
   } else {
-    window.location.href = "index.html"; // برگشت به صفحه ورود
+    window.location.href = "index.html"; 
   }
 });
 
@@ -112,10 +124,9 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
 });
 
-// دریافت سفارشات از دیتابیس
 window.loadOrders = async function() {
   const tbody = document.getElementById("ordersTableBody");
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-ink/50">در حال بارگذاری...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات از سرور...</td></tr>';
   
   try {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
@@ -127,55 +138,62 @@ window.loadOrders = async function() {
     renderTable(allOrders);
   } catch (error) {
     console.error("خطا در دریافت سفارشات:", error);
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-red-500">خطا در دریافت اطلاعات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور!</td></tr>';
   }
 };
 
-// رسم جدول و فیلترها
 function renderTable(data) {
   const tbody = document.getElementById("ordersTableBody");
   tbody.innerHTML = "";
   
   if(data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">سفارشی یافت نشد.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/70">هیچ سفارشی با این مشخصات یافت نشد.</td></tr>';
     return;
   }
 
   data.forEach(order => {
-    // تولید تگ‌های عکس
+    // تولید کدهای HTML برای عکس‌ها و اتصال به تابع بزرگنمایی
     let imagesHtml = '';
     if (order.thumbnails && order.thumbnails.length > 0) {
-      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-10 h-10 object-cover rounded border inline-block ml-1 hover:scale-150 transition cursor-pointer" onclick="window.open('${src}')">`).join('');
+      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-12 h-12 object-cover rounded-lg border-2 border-ink/10 inline-block mx-0.5 hover:scale-110 hover:border-accent transition cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('');
     } else {
-      imagesHtml = '<span class="text-xs text-ink/40">بدون عکس/حذف شده</span>';
+      imagesHtml = '<span class="text-[10px] bg-ink/5 px-2 py-1 rounded text-ink/50">بدون تصویر</span>';
     }
 
     const tr = document.createElement("tr");
-    tr.className = "hover:bg-ink/5 transition";
+    tr.className = "hover:bg-ink/5 transition duration-150";
     tr.innerHTML = `
-      <td class="p-3 font-bold text-accent">${order.receiptNumber || '-'}</td>
+      <td class="p-3 font-black text-accent text-base">${order.receiptNumber || '-'}</td>
       <td class="p-3">
-        <div class="font-bold">${order.customerName || '-'}</div>
-        <div class="text-xs text-ink/50">${order.cooperationStatus || ''}</div>
+        <div class="font-bold text-ink">${order.customerName || '-'}</div>
+        <div class="text-[11px] text-ink/60 mt-0.5">نمایشی: <span class="font-semibold">${order.displayName || '-'}</span></div>
+        <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold">${order.cooperationStatus || 'نامشخص'}</div>
       </td>
       <td class="p-3 text-xs">
-        <div>${order.material || '-'}</div>
-        <div class="text-ink/60">تعداد: ${order.quantity || '-'}</div>
+        <div class="font-bold text-ink mb-1">${order.material || '-'} <span class="text-ink/50 font-normal">(تعداد: ${order.quantity || '-'})</span></div>
+        <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80">${order.designerName || '-'}</span></div>
+        <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80">${order.printingHouse || '-'}</span></div>
       </td>
       <td class="p-3 text-xs">
-        <div>ثبت: ${order.orderDate || '-'}</div>
-        <div class="text-ink/60">آماده: ${order.estimatedReadyDate || '-'}</div>
+        <div class="mb-1 text-ink/80"><span class="opacity-60">ثبت:</span> <span class="font-bold">${order.orderDate || '-'}</span></div>
+        <div class="text-accent"><span class="opacity-70">آماده:</span> <span class="font-bold">${order.estimatedReadyDate || '-'}</span></div>
       </td>
-      <td class="p-3">${imagesHtml}</td>
-      <td class="p-3">
-        <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent">
+      <td class="p-3 text-center">
+        <select onchange="updateSettlement('${order.id}', this.value)" class="status-select font-bold text-center outline-none ${order.settlementStatus === 'تسویه شده' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
+          <option value="تسویه نشده" ${order.settlementStatus === 'تسویه نشده' ? 'selected' : ''}>تسویه نشده</option>
+          <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
+        </select>
+      </td>
+      <td class="p-3 text-center">${imagesHtml}</td>
+      <td class="p-3 text-center">
+        <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[140px]">
           ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال در انبار', 'تحویل داده شده', 'کنسل شده']
             .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
       <td class="p-3 text-center">
-        <button onclick="deleteOrder('${order.id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded transition" title="حذف سفارش">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition" title="حذف دائمی">
+          <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
       </td>
     `;
@@ -183,58 +201,89 @@ function renderTable(data) {
   });
 }
 
-// رویدادهای فیلتر و جستجو
+// توابع مربوط به باز و بسته کردن عکس‌ها (Modal)
+window.openImageModal = function(src) {
+  document.getElementById("modalImage").src = src;
+  document.getElementById("imageModal").classList.remove("hidden");
+  document.body.style.overflow = "hidden"; // جلوگیری از اسکرول خوردن صفحه پشت
+};
+
+window.closeImageModal = function() {
+  document.getElementById("imageModal").classList.add("hidden");
+  setTimeout(() => { document.getElementById("modalImage").src = ""; }, 300);
+  document.body.style.overflow = "auto";
+};
+
+// سیستم جستجوی پیشرفته روی تمام فیلدها
 document.getElementById("searchInput").addEventListener("input", filterData);
 document.getElementById("filterStatus").addEventListener("change", filterData);
+document.getElementById("filterSettlement").addEventListener("change", filterData);
 
 function filterData() {
   const searchTerm = document.getElementById("searchInput").value.toLowerCase();
   const statusFilter = document.getElementById("filterStatus").value;
+  const settlementFilter = document.getElementById("filterSettlement").value;
 
   const filtered = allOrders.filter(order => {
-    const matchesSearch = (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
-                          (order.receiptNumber && order.receiptNumber.includes(searchTerm));
+    // جستجو در چندین فیلد مختلف
+    const matchesSearch = 
+      (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
+      (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
+      (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
+      (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
+      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm));
+      
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSettlement = settlementFilter === "all" || order.settlementStatus === settlementFilter;
+    
+    return matchesSearch && matchesStatus && matchesSettlement;
   });
 
   renderTable(filtered);
 }
 
-// تغییر وضعیت سفارش
+// تغییر وضعیت تسویه حساب از درون جدول
+window.updateSettlement = async function(id, newStatus) {
+  try {
+    await updateDoc(doc(db, "orders", id), { settlementStatus: newStatus });
+    const orderIndex = allOrders.findIndex(o => o.id === id);
+    if(orderIndex > -1) {
+      allOrders[orderIndex].settlementStatus = newStatus;
+    }
+    // برای تغییر رنگ در لحظه، جدول را رفرش می‌کنیم
+    filterData();
+  } catch (error) {
+    console.error("خطا در بروزرسانی وضعیت مالی:", error);
+    alert("خطا در ذخیره وضعیت تسویه!");
+  }
+};
+
 window.updateStatus = async function(id, newStatus) {
   try {
     const updateData = { status: newStatus };
-    
-    // اگر وضعیت به "تحویل داده شده" تغییر کرد، تاریخ الان رو ثبت کن (برای سیستم پاکسازی عکس‌ها)
     if (newStatus === "تحویل داده شده") {
       updateData.deliveredAt = new Date().toISOString();
     }
-
     await updateDoc(doc(db, "orders", id), updateData);
     
-    // آپدیت آرایه لوکال بدون نیاز به رفرش کل دیتابیس
     const orderIndex = allOrders.findIndex(o => o.id === id);
     if(orderIndex > -1) {
       allOrders[orderIndex].status = newStatus;
       if(newStatus === "تحویل داده شده") allOrders[orderIndex].deliveredAt = updateData.deliveredAt;
     }
-    
-    alert("وضعیت سفارش بروزرسانی شد.");
   } catch (error) {
     console.error("خطا در بروزرسانی:", error);
     alert("خطا در تغییر وضعیت!");
   }
 };
 
-// حذف سفارش (با تاییدیه)
 window.deleteOrder = async function(id) {
-  const confirmed = confirm("آیا از حذف این سفارش کاملاً مطمئن هستید؟ این عمل غیرقابل بازگشت است.");
+  const confirmed = confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ اطلاعات برنمی‌گردد.");
   if (confirmed) {
     try {
       await deleteDoc(doc(db, "orders", id));
       allOrders = allOrders.filter(o => o.id !== id);
-      filterData(); // رندر مجدد جدول
+      filterData(); 
     } catch (error) {
       console.error("خطا در حذف:", error);
       alert("خطا در پاک کردن سفارش!");
@@ -242,32 +291,21 @@ window.deleteOrder = async function(id) {
   }
 };
 
-// تابع پاکسازی خودکار عکس‌های قدیمی
 async function runAutoCleanup() {
   const tenDaysInMs = 10 * 24 * 60 * 60 * 1000;
   const now = new Date();
-  let needRefresh = false;
-
   try {
-    const q = query(collection(db, "orders")); // گرفتن همه برای بررسی
+    const q = query(collection(db, "orders")); 
     const snapshot = await getDocs(q);
     
     for (const docSnapshot of snapshot.docs) {
       const data = docSnapshot.data();
-      // چک کردن سفارشات تحویل داده شده که عکس دارند
       if (data.status === "تحویل داده شده" && data.deliveredAt && data.thumbnails && data.thumbnails.length > 0) {
         const deliveryDate = new Date(data.deliveredAt);
         if (now - deliveryDate > tenDaysInMs) {
-          // حذف عکس‌ها برای آزاد کردن فضا
           await updateDoc(doc(db, "orders", docSnapshot.id), { thumbnails: [] });
-          needRefresh = true;
         }
       }
-    }
-    
-    if (needRefresh) {
-      console.log("عملیات پاکسازی عکس‌های قدیمی (بیش از ۱۰ روز) انجام شد.");
-      loadOrders(); // رفرش لیست برای اعمال تغییرات ظاهری
     }
   } catch (error) {
     console.error("خطا در پاکسازی خودکار:", error);
