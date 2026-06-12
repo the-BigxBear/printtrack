@@ -63,33 +63,66 @@ tailwind.config = {
       </select>
     </div>
     <div>
-      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition shadow-md shadow-accent/20">بروزرسانی لیست</button>
+      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition shadow-md shadow-accent/20">بروزرسانی کل لیست</button>
     </div>
   </div>
 
-  <div class="table-container overflow-x-auto border border-ink/10 rounded-xl">
-    <table class="w-full text-right text-sm whitespace-nowrap min-w-[1000px]">
+  <div id="timeFilterStatusBadge" class="hidden mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-xl text-xs font-bold justify-between items-center animate-pulse">
+    <span id="timeFilterStatusText">در حال نمایش بازه زمانی خاص...</span>
+    <button onclick="resetToDynamicWeeks()" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md transition">بازگشت به هفته جاری</button>
+  </div>
+
+  <div class="table-container overflow-x-auto border border-ink/10 rounded-xl mb-6">
+    <table class="w-full text-right text-sm whitespace-nowrap min-w-[1100px]">
       <thead class="bg-ink text-white">
         <tr>
           <th class="p-3 w-16">قبض</th>
-          <th class="p-3">اطلاعات مشتری (برای فیلتر کلیک کنید)</th>
+          <th class="p-3">اطلاعات مشتری (جهت فیلتر کلیک کنید)</th>
           <th class="p-3">مشخصات فنی و همکاران</th>
-          <th class="p-3">تاریخ‌ها</th>
+          <th class="p-3 w-64">
+            <div class="flex items-center gap-1">
+              <span>تاریخ‌ها (سورت):</span>
+              <button onclick="toggleSortField('createdAt')" id="sortRegBtn" class="text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition">ثبت ⬇️</button>
+              <button onclick="toggleSortField('estimatedReadyDate')" id="sortReadyBtn" class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition">تحویل ⏱️</button>
+            </div>
+          </th>
           <th class="p-3 text-center">وضعیت مالی</th>
           <th class="p-3 text-center">تصاویر</th>
           <th class="p-3 text-center">وضعیت سفارش</th>
-          <th class="p-3 text-center w-28">عملیات</th>
+          <th class="p-3 text-center w-36">عملیات مدیریت</th>
         </tr>
       </thead>
       <tbody id="ordersTableBody" class="divide-y divide-ink/10">
         </tbody>
     </table>
   </div>
+
+  <div class="flex flex-col sm:flex-row justify-center items-center gap-4 bg-paper/30 p-4 rounded-xl border border-ink/5">
+    <button onclick="showMoreWeeks()" id="loadMoreWeeksBtn" class="bg-ink text-white hover:bg-ink/90 font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-md flex items-center gap-1.5">
+      <span>➕ مشاهده یک هفته بیشتر</span>
+    </button>
+    <button onclick="openSpecificWeekModal()" class="bg-white text-ink border border-ink/20 hover:bg-paper font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
+      <span>📅 مشاهده رکوردها در یک هفته خاص</span>
+    </button>
+  </div>
+
 </div>
 
 <div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300" onclick="closeImageModal()">
   <button class="absolute top-6 right-6 text-white hover:text-red-500 font-bold text-4xl cursor-pointer transition transform hover:scale-110">&times;</button>
   <img id="modalImage" class="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl border border-white/10" src="" onclick="event.stopPropagation()">
+</div>
+
+<div id="specificWeekModal" class="fixed inset-0 z-[95] hidden bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeSpecificWeekModal()">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-ink/10 animate-scaleUp" onclick="event.stopPropagation()">
+    <h3 class="text-base font-bold text-ink mb-3 border-b pb-2">یک تاریخ مشخص را انتخاب کنید:</h3>
+    <p class="text-xs text-ink/60 mb-4 leading-relaxed">سیستم سفارشات مربوط به ۷ روزِ منتهی به تاریخ انتخابی شما را فیلتر کرده و نمایش می‌دهد.</p>
+    <input type="date" id="targetWeekDate" class="w-full border border-ink/20 rounded-xl p-3 text-sm focus:border-accent outline-none bg-paper/50 mb-4 font-bold text-center">
+    <div class="flex justify-end gap-2">
+      <button onclick="closeSpecificWeekModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
+      <button onclick="submitSpecificWeek()" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-5 rounded-lg text-xs transition shadow-md">اعمال فیلتر زمانی</button>
+    </div>
+  </div>
 </div>
 
 <div id="editModal" class="fixed inset-0 z-[90] hidden bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeEditModal()">
@@ -144,8 +177,8 @@ tailwind.config = {
         <input type="text" id="editEstimatedReadyDate" class="edit-input">
       </div>
       <div class="sm:col-span-2 flex justify-end gap-2 border-t pt-4 mt-2">
-        <button type="button" onclick="closeEditModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm transition">انصراف</button>
-        <button type="submit" id="editSubmitBtn" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-6 rounded-lg text-sm transition shadow-md">ذخیره تغییرات</button>
+        <button type="button" onclick="closeEditModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
+        <button type="submit" id="editSubmitBtn" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-6 rounded-lg text-xs transition shadow-md">ذخیره تغییرات</button>
       </div>
     </form>
   </div>
@@ -169,7 +202,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
+
+// متغیرهای حالت سیستم
 let allOrders = [];
+let weeksToShow = 1; 
+let timeFilterMode = 'dynamic'; // dynamic یا specific
+let specificTargetDate = null;
+let currentSortField = 'createdAt'; // گزینه های معتبر: createdAt یا estimatedReadyDate
 
 onAuthStateChanged(auth, (user) => {
   if (user && user.email === ALLOWED_EMAIL) {
@@ -188,7 +227,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 
 window.loadOrders = async function() {
   const tbody = document.getElementById("ordersTableBody");
-  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات از سرور...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت کل اطلاعات از فایربیس...</td></tr>';
   
   try {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
@@ -197,10 +236,10 @@ window.loadOrders = async function() {
     snapshot.forEach(doc => {
       allOrders.push({ id: doc.id, ...doc.data() });
     });
-    renderTable(allOrders);
+    filterData();
   } catch (error) {
     console.error("خطا در دریافت سفارشات:", error);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور!</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور! دوباره تلاش کنید.</td></tr>';
   }
 };
 
@@ -209,16 +248,35 @@ function renderTable(data) {
   tbody.innerHTML = "";
   
   if(data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/70">هیچ سفارشی با این مشخصات یافت نشد.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/70">هیچ سفارشی در این بازه زمانی با فیلترهای فوق پیدا نشد.</td></tr>';
     return;
   }
 
+  let lastDayLabel = "";
+
   data.forEach(order => {
+    // تفکیک روزهای هفته به صورت زنده بر اساس تاریخ ثبت سفارش
+    let orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
+    let dayLabel = "نامشخص";
+    try {
+      dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp);
+    } catch(e) {
+      dayLabel = order.orderDate || "تاریخ نامشخص";
+    }
+
+    if (dayLabel !== lastDayLabel) {
+      const separatorTr = document.createElement("tr");
+      separatorTr.className = "bg-slate-100 border-y border-ink/10 text-ink font-black text-xs select-none";
+      separatorTr.innerHTML = `<td colspan="8" class="p-2.5 text-right bg-amber-50/70 font-black text-accent text-xs">📅 محموله‌های روز: ${dayLabel}</td>`;
+      tbody.appendChild(separatorTr);
+      lastDayLabel = dayLabel;
+    }
+
     let imagesHtml = '';
     if (order.thumbnails && order.thumbnails.length > 0) {
-      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-12 h-12 object-cover rounded-lg border-2 border-ink/10 inline-block mx-0.5 hover:scale-110 hover:border-accent transition cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('');
+      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-11 h-11 object-cover rounded-lg border border-ink/10 inline-block mx-0.5 hover:scale-110 hover:border-accent transition cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('');
     } else {
-      imagesHtml = '<span class="text-[10px] bg-ink/5 px-2 py-1 rounded text-ink/50">بدون تصویر</span>';
+      imagesHtml = '<span class="text-[10px] bg-ink/5 px-2 py-1 rounded text-ink/40">بدون تصویر</span>';
     }
 
     const tr = document.createElement("tr");
@@ -227,11 +285,11 @@ function renderTable(data) {
       <td class="p-3 font-black text-accent text-base">${order.receiptNumber || '-'}</td>
       <td class="p-3">
         <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.customerName}')">${order.customerName || '-'}</div>
-        <div class="text-[11px] text-ink/60 mt-0.5">نمایشی: <span class="font-semibold cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.displayName}')">${order.displayName || '-'}</span></div>
-        <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold cursor-pointer hover:bg-accent hover:text-white transition" onclick="setSearchValue('${order.cooperationStatus}')">${order.cooperationStatus || 'نامشخص'}</div>
+        <div class="text-[11px] text-ink/60 mt-0.5">نام نمایشی: <span class="font-semibold cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.displayName}')">${order.displayName || '-'}</span></div>
+        <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold cursor-pointer hover:bg-accent hover:text-white transition" onclick="setSearchValue('${order.cooperationStatus}')">${order.cooperationStatus || 'مشتری'}</div>
       </td>
       <td class="p-3 text-xs">
-        <div class="font-bold text-ink mb-1"><span class="cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.material}')">${order.material || '-'}</span> <span class="text-ink/50 font-normal">(تعداد: ${order.quantity || '-'})</span></div>
+        <div class="font-bold text-ink mb-1"><span class="cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.material}')">${order.material || '-'}</span> <span class="text-ink/50 font-normal">(تیراژ: ${order.quantity || '-'})</span></div>
         <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.designerName}')">${order.designerName || '-'}</span></div>
         <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.printingHouse}')">${order.printingHouse || '-'}</span></div>
       </td>
@@ -247,18 +305,20 @@ function renderTable(data) {
       </td>
       <td class="p-3 text-center">${imagesHtml}</td>
       <td class="p-3 text-center">
-        <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[140px]">
+        <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[130px]">
           ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال در انبار', 'تحویل داده شده', 'کنسل شده']
             .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
       <td class="p-3 text-center">
         <div class="flex items-center justify-center gap-1.5">
-          <button onclick="openEditModal('${order.id}')" class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-1.5 rounded-lg transition" title="ویرایش اطلاعات">
-            <svg class="w-4.5 h-4.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+          <button onclick="openEditModal('${order.id}')" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition shadow-sm border border-blue-700 gap-1" title="ویرایش">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+            <span>ویرایش</span>
           </button>
-          <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition" title="حذف دائمی">
-            <svg class="w-4.5 h-4.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          <button onclick="deleteOrder('${order.id}')" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs transition shadow-sm border border-red-700 gap-1" title="حذف دائمی">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>حذف</span>
           </button>
         </div>
       </td>
@@ -267,7 +327,7 @@ function renderTable(data) {
   });
 }
 
-// تابع کلیک روی مقادیر و پر کردن فیلتر سرچ
+// توابع کلیک روی فیلدها جهت اعمال فیلتر سریع
 window.setSearchValue = function(val) {
   if(!val || val === '-') return;
   document.getElementById("searchInput").value = val;
@@ -281,7 +341,130 @@ window.clearSearch = function() {
   filterData();
 };
 
-// باز و بسته کردن عکس‌ها (Modal)
+// کنترل‌های مربوط به سورت کل لیست
+window.toggleSortField = function(field) {
+  currentSortField = field;
+  const regBtn = document.getElementById("sortRegBtn");
+  const readyBtn = document.getElementById("sortReadyBtn");
+  
+  if (field === 'createdAt') {
+    regBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition";
+    readyBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition";
+  } else {
+    readyBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition";
+    regBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition";
+  }
+  filterData();
+};
+
+// توابع زمانی پجینیشن هفتگی
+window.showMoreWeeks = function() {
+  weeksToShow++;
+  filterData();
+};
+
+window.openSpecificWeekModal = function() {
+  document.getElementById("specificWeekModal").classList.remove("hidden");
+};
+
+window.closeSpecificWeekModal = function() {
+  document.getElementById("specificWeekModal").classList.add("hidden");
+};
+
+window.submitSpecificWeek = function() {
+  const dateInput = document.getElementById("targetWeekDate").value;
+  if(!dateInput) {
+    alert("لطفاً یک تاریخ معتبر را انتخاب کنید.");
+    return;
+  }
+  timeFilterMode = 'specific';
+  specificTargetDate = new Date(dateInput);
+  
+  // تولید متن فارسی بازه زمانی خاص برای آگاهی کاربر
+  const formattedDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }).format(specificTargetDate);
+  document.getElementById("timeFilterStatusText").textContent = `در حال نمایش کارهای یک هفته منتهی به تاریخ: ${formattedDate}`;
+  document.getElementById("timeFilterStatusBadge").style.display = 'flex';
+  
+  closeSpecificWeekModal();
+  filterData();
+};
+
+window.resetToDynamicWeeks = function() {
+  timeFilterMode = 'dynamic';
+  weeksToShow = 1;
+  document.getElementById("timeFilterStatusBadge").style.display = 'none';
+  filterData();
+};
+
+// فیلتراسیون، سورت و گروه بندی نهایی داده ها روی حافظه لوکال
+document.getElementById("searchInput").addEventListener("input", function() {
+  if(this.value.trim() !== "") document.getElementById("clearSearchBtn").classList.remove("hidden");
+  else document.getElementById("clearSearchBtn").classList.add("hidden");
+  filterData();
+});
+document.getElementById("filterStatus").addEventListener("change", filterData);
+document.getElementById("filterSettlement").addEventListener("change", filterData);
+
+function filterData() {
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const statusFilter = document.getElementById("filterStatus").value;
+  const settlementFilter = document.getElementById("filterSettlement").value;
+
+  const now = new Date();
+
+  // ۱. فیلتر متنی و وضعیت‌های جدول
+  let filtered = allOrders.filter(order => {
+    const matchesSearch = 
+      (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
+      (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
+      (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
+      (order.material && order.material.toLowerCase().includes(searchTerm)) ||
+      (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
+      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm));
+      
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesSettlement = settlementFilter === "all" || order.settlementStatus === settlementFilter;
+    
+    return matchesSearch && matchesStatus && matchesSettlement;
+  });
+
+  // ۲. فیلتر زمانی (یک هفته پیش‌فرض، تمدید هفتگی یا بازه انتخابی)
+  filtered = filtered.filter(order => {
+    const orderTime = order.createdAt ? new Date(order.createdAt) : new Date();
+    
+    if (timeFilterMode === 'dynamic') {
+      const thresholdDate = new Date();
+      thresholdDate.setDate(now.getDate() - (weeksToShow * 7));
+      return orderTime >= thresholdDate;
+    } else if (timeFilterMode === 'specific') {
+      const endWindow = new Date(specificTargetDate);
+      endWindow.setHours(23,59,59,999);
+      const startWindow = new Date(specificTargetDate);
+      startWindow.setDate(startWindow.getDate() - 7);
+      startWindow.setHours(0,0,0,0);
+      return orderTime >= startWindow && orderTime <= endWindow;
+    }
+    return true;
+  });
+
+  // ۳. اعمال سورت انتخابی (ثبت سیستم یا موعد آماده سازی کارها)
+  filtered.sort((a, b) => {
+    if (currentSortField === 'createdAt') {
+      const timeA = a.createdAt ? new Date(a.createdAt) : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt) : 0;
+      return timeB - timeA; 
+    } else {
+      // سورت متنی رشته تاریخ شمسی موعد تحویل (مثال: 1405/03/24) به صورت نزولی
+      const dateA = a.estimatedReadyDate || "";
+      const dateB = b.estimatedReadyDate || "";
+      return dateB.localeCompare(dateA);
+    }
+  });
+
+  renderTable(filtered);
+}
+
+// مدال عکس بزرگ
 window.openImageModal = function(src) {
   document.getElementById("modalImage").src = src;
   document.getElementById("imageModal").classList.remove("hidden");
@@ -294,7 +477,7 @@ window.closeImageModal = function() {
   document.body.style.overflow = "auto";
 };
 
-// باز و بسته کردن مدال ویرایش
+// مدال فرم ویرایش
 window.openEditModal = function(id) {
   const order = allOrders.find(o => o.id === id);
   if(!order) return;
@@ -320,7 +503,7 @@ window.closeEditModal = function() {
   document.body.style.overflow = "auto";
 };
 
-// ثبت نهایی فرم ویرایش در فایربیس
+// ذخیره فرم ویرایش
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const id = document.getElementById("editOrderId").value;
@@ -343,81 +526,38 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
   try {
     await updateDoc(doc(db, "orders", id), updatedData);
-    
-    // بروزرسانی دیتای درون آرایه محلی بدون نیاز به دانلود دوباره
     const index = allOrders.findIndex(o => o.id === id);
     if(index > -1) {
       allOrders[index] = { ...allOrders[index], ...updatedData };
     }
-    
     closeEditModal();
-    filterData(); // اعمال فیلتر بر اساس دیتای جدید
-    alert("تغییرات با موفقیت ذخیره شد!");
+    filterData();
+    alert("تغییرات با موفقیت در فایربیس اعمال شد!");
   } catch (error) {
     console.error("خطا در ویرایش:", error);
-    alert("خطا در ثبت تغییرات در دیتابیس!");
+    alert("خطا در ذخیره سازی اطلاعات!");
   } finally {
     btn.textContent = "ذخیره تغییرات";
     btn.disabled = false;
   }
 });
 
-// سیستم جستجوی پیشرفته روی تمام فیلدها
-document.getElementById("searchInput").addEventListener("input", function() {
-  if(this.value.trim() !== "") {
-    document.getElementById("clearSearchBtn").classList.remove("hidden");
-  } else {
-    document.getElementById("clearSearchBtn").classList.add("hidden");
-  }
-  filterData();
-});
-document.getElementById("filterStatus").addEventListener("change", filterData);
-document.getElementById("filterSettlement").addEventListener("change", filterData);
-
-function filterData() {
-  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-  const statusFilter = document.getElementById("filterStatus").value;
-  const settlementFilter = document.getElementById("filterSettlement").value;
-
-  const filtered = allOrders.filter(order => {
-    const matchesSearch = 
-      (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
-      (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
-      (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
-      (order.material && order.material.toLowerCase().includes(searchTerm)) ||
-      (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
-      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm));
-      
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    const matchesSettlement = settlementFilter === "all" || order.settlementStatus === settlementFilter;
-    
-    return matchesSearch && matchesStatus && matchesSettlement;
-  });
-
-  renderTable(filtered);
-}
-
-// تغییر وضعیت تسویه حساب از درون جدول
+// تغییرات مستقیم وضعیت ها از داخل ردیف های جدول
 window.updateSettlement = async function(id, newStatus) {
   try {
     await updateDoc(doc(db, "orders", id), { settlementStatus: newStatus });
     const orderIndex = allOrders.findIndex(o => o.id === id);
-    if(orderIndex > -1) {
-      allOrders[orderIndex].settlementStatus = newStatus;
-    }
+    if(orderIndex > -1) allOrders[orderIndex].settlementStatus = newStatus;
     filterData();
   } catch (error) {
-    console.error("خطا در بروزرسانی وضعیت مالی:", error);
-    alert("خطا در ذخیره وضعیت تسویه!");
+    alert("خطا در ثبت وضعیت مالی!");
   }
 };
 
 window.updateStatus = async function(id, newStatus) {
   try {
     const updateData = { status: newStatus };
-    if (newStatus === "تحویل داده شده") {
-      updateData.deliveredAt = new Date().toISOString();
-    }
+    if (newStatus === "تحویل داده شده") updateData.deliveredAt = new Date().toISOString();
     await updateDoc(doc(db, "orders", id), updateData);
     
     const orderIndex = allOrders.findIndex(o => o.id === id);
@@ -426,21 +566,19 @@ window.updateStatus = async function(id, newStatus) {
       if(newStatus === "تحویل داده شده") allOrders[orderIndex].deliveredAt = updateData.deliveredAt;
     }
   } catch (error) {
-    console.error("خطا در بروزرسانی:", error);
-    alert("خطا در تغییر وضعیت!");
+    alert("خطا در ذخیره وضعیت سفارش!");
   }
 };
 
 window.deleteOrder = async function(id) {
-  const confirmed = confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ اطلاعات برنمی‌گردد.");
+  const confirmed = confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ دیتای حذف شده قابل بازیابی نیست.");
   if (confirmed) {
     try {
       await deleteDoc(doc(db, "orders", id));
       allOrders = allOrders.filter(o => o.id !== id);
       filterData(); 
     } catch (error) {
-      console.error("خطا در حذف:", error);
-      alert("خطا در پاک کردن سفارش!");
+      alert("خطا در حذف سفارش!");
     }
   }
 };
@@ -451,7 +589,6 @@ async function runAutoCleanup() {
   try {
     const q = query(collection(db, "orders")); 
     const snapshot = await getDocs(q);
-    
     for (const docSnapshot of snapshot.docs) {
       const data = docSnapshot.data();
       if (data.status === "تحویل داده شده" && data.deliveredAt && data.thumbnails && data.thumbnails.length > 0) {
@@ -461,9 +598,7 @@ async function runAutoCleanup() {
         }
       }
     }
-  } catch (error) {
-    console.error("خطا در پاکسازی خودکار:", error);
-  }
+  } catch (error) {}
 }
 </script>
 </body>
