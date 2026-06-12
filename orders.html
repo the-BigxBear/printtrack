@@ -7,6 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
 <script>
 tailwind.config = {
   theme: { extend: { colors: { paper: '#F6F1E7', ink: '#221F1B', accent: '#1F3A8C' }, fontFamily: { sans: ['Vazirmatn', 'sans-serif'] } } }
@@ -19,6 +24,18 @@ tailwind.config = {
   .status-select { background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.8rem; cursor: pointer;}
   .edit-input { width: 100%; border: 1px solid rgba(34,31,27,.2); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; outline: none; }
   .edit-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,58,140,0.1); }
+  
+  /* استایل‌های تقویم شمسی برای هماهنگی با مدال */
+  .pwt-datepicker-container {
+    font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 30px rgba(34,31,27,.2) !important;
+    border: 1px solid rgba(34,31,27,.08) !important;
+    z-index: 100000 !important; /* برای قرار گرفتن روی مدال */
+  }
+  .pwt-datepicker-header { background: var(--accent) !important; }
+  .pwt-datepicker-day-text.pwt-datepicker-selected-day { background: var(--accent) !important; }
+  .pwt-datepicker-day-text:hover { background: rgba(31,58,140,.15) !important; }
 </style>
 </head>
 <body class="min-h-screen p-4 sm:p-6 lg:p-10 text-ink">
@@ -79,12 +96,8 @@ tailwind.config = {
           <th class="p-3 w-16">قبض</th>
           <th class="p-3">اطلاعات مشتری (جهت فیلتر کلیک کنید)</th>
           <th class="p-3">مشخصات فنی و همکاران</th>
-          <th class="p-3 w-64">
-            <div class="flex items-center gap-1">
-              <span>تاریخ‌ها (سورت):</span>
-              <button onclick="toggleSortField('createdAt')" id="sortRegBtn" class="text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition">ثبت ⬇️</button>
-              <button onclick="toggleSortField('estimatedReadyDate')" id="sortReadyBtn" class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition">تحویل ⏱️</button>
-            </div>
+          <th class="p-3 w-64 cursor-pointer hover:text-accent transition select-none" onclick="toggleSort()" title="جهت تغییر مرتب‌سازی بین 'زمان ثبت' و 'موعد تحویل' کلیک کنید">
+            تاریخ‌ها (سورت)
           </th>
           <th class="p-3 text-center">وضعیت مالی</th>
           <th class="p-3 text-center">تصاویر</th>
@@ -117,7 +130,7 @@ tailwind.config = {
   <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-ink/10 animate-scaleUp" onclick="event.stopPropagation()">
     <h3 class="text-base font-bold text-ink mb-3 border-b pb-2">یک تاریخ مشخص را انتخاب کنید:</h3>
     <p class="text-xs text-ink/60 mb-4 leading-relaxed">سیستم سفارشات مربوط به ۷ روزِ منتهی به تاریخ انتخابی شما را فیلتر کرده و نمایش می‌دهد.</p>
-    <input type="date" id="targetWeekDate" class="w-full border border-ink/20 rounded-xl p-3 text-sm focus:border-accent outline-none bg-paper/50 mb-4 font-bold text-center">
+    <input type="text" id="targetWeekDate" class="w-full border border-ink/20 rounded-xl p-3 text-sm focus:border-accent outline-none bg-white mb-4 font-bold text-center pdate" readonly placeholder="انتخاب تاریخ...">
     <div class="flex justify-end gap-2">
       <button onclick="closeSpecificWeekModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
       <button onclick="submitSpecificWeek()" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-5 rounded-lg text-xs transition shadow-md">اعمال فیلتر زمانی</button>
@@ -169,11 +182,11 @@ tailwind.config = {
         <input type="text" id="editPrintingHouse" class="edit-input">
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ سفارش</label>
+        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ سفارش (متن)</label>
         <input type="text" id="editOrderDate" class="edit-input">
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ حدودی حاضر شدن</label>
+        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ حدودی حاضر شدن (متن)</label>
         <input type="text" id="editEstimatedReadyDate" class="edit-input">
       </div>
       <div class="sm:col-span-2 flex justify-end gap-2 border-t pt-4 mt-2">
@@ -207,19 +220,35 @@ const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
 let allOrders = [];
 let weeksToShow = 1; 
 let timeFilterMode = 'dynamic'; // dynamic یا specific
+let specificTargetTimestamp = null; // برای ذخیره تایم استمپ تقویم شمسی
 let specificTargetDate = null;
-let currentSortField = 'createdAt'; // گزینه های معتبر: createdAt یا estimatedReadyDate
+let currentSortField = 'createdAt'; // مبنای سورت پیش‌فرض
 
 onAuthStateChanged(auth, (user) => {
   if (user && user.email === ALLOWED_EMAIL) {
     document.getElementById("authMessage").style.display = "none";
     document.getElementById("appContainer").classList.remove("hidden");
+    initAppFeatures();
     loadOrders();
     runAutoCleanup();
   } else {
     window.location.href = "index.html"; 
   }
 });
+
+function initAppFeatures() {
+  // راه‌اندازی تقویم شمسی روی فیلد انتخاب هفته خاص
+  $('#targetWeekDate').persianDatepicker({ 
+    format: 'YYYY/MM/DD', 
+    initialValue: true, 
+    autoClose: true,
+    onSelect: function(unixTimestamp) {
+      specificTargetTimestamp = unixTimestamp;
+    }
+  });
+  // مقداردهی اولیه به زمان حال برای زمانی که کاربر تاریخی را انتخاب نکرده باشد
+  specificTargetTimestamp = new persianDate().valueOf();
+}
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
@@ -255,7 +284,6 @@ function renderTable(data) {
   let lastDayLabel = "";
 
   data.forEach(order => {
-    // تفکیک روزهای هفته به صورت زنده بر اساس تاریخ ثبت سفارش
     let orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
     let dayLabel = "نامشخص";
     try {
@@ -285,7 +313,7 @@ function renderTable(data) {
       <td class="p-3 font-black text-accent text-base">${order.receiptNumber || '-'}</td>
       <td class="p-3">
         <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.customerName}')">${order.customerName || '-'}</div>
-        <div class="text-[11px] text-ink/60 mt-0.5">نام نمایشی: <span class="font-semibold cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.displayName}')">${order.displayName || '-'}</span></div>
+        <div class="text-[11px] text-ink/60 mt-0.5">نمایشی: <span class="font-semibold cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.displayName}')">${order.displayName || '-'}</span></div>
         <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold cursor-pointer hover:bg-accent hover:text-white transition" onclick="setSearchValue('${order.cooperationStatus}')">${order.cooperationStatus || 'مشتری'}</div>
       </td>
       <td class="p-3 text-xs">
@@ -327,7 +355,6 @@ function renderTable(data) {
   });
 }
 
-// توابع کلیک روی فیلدها جهت اعمال فیلتر سریع
 window.setSearchValue = function(val) {
   if(!val || val === '-') return;
   document.getElementById("searchInput").value = val;
@@ -341,23 +368,12 @@ window.clearSearch = function() {
   filterData();
 };
 
-// کنترل‌های مربوط به سورت کل لیست
-window.toggleSortField = function(field) {
-  currentSortField = field;
-  const regBtn = document.getElementById("sortRegBtn");
-  const readyBtn = document.getElementById("sortReadyBtn");
-  
-  if (field === 'createdAt') {
-    regBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition";
-    readyBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition";
-  } else {
-    readyBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-accent text-white font-black border border-white/20 transition";
-    regBtn.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-bold hover:bg-white/20 transition";
-  }
+// تابع جدید و نامرئی تاگل برای تغییر حالت سورت
+window.toggleSort = function() {
+  currentSortField = (currentSortField === 'createdAt') ? 'estimatedReadyDate' : 'createdAt';
   filterData();
 };
 
-// توابع زمانی پجینیشن هفتگی
 window.showMoreWeeks = function() {
   weeksToShow++;
   filterData();
@@ -372,17 +388,17 @@ window.closeSpecificWeekModal = function() {
 };
 
 window.submitSpecificWeek = function() {
-  const dateInput = document.getElementById("targetWeekDate").value;
-  if(!dateInput) {
-    alert("لطفاً یک تاریخ معتبر را انتخاب کنید.");
+  if(!specificTargetTimestamp) {
+    alert("مشکلی در دریافت تاریخ پیش آمد. لطفاً دوباره تاریخ را انتخاب کنید.");
     return;
   }
-  timeFilterMode = 'specific';
-  specificTargetDate = new Date(dateInput);
   
-  // تولید متن فارسی بازه زمانی خاص برای آگاهی کاربر
-  const formattedDate = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }).format(specificTargetDate);
-  document.getElementById("timeFilterStatusText").textContent = `در حال نمایش کارهای یک هفته منتهی به تاریخ: ${formattedDate}`;
+  timeFilterMode = 'specific';
+  // تبدیل تایم استمپ خروجی از تقویم شمسی به فرمت Date جاوااسکریپت
+  specificTargetDate = new Date(specificTargetTimestamp);
+  
+  const textDateValue = document.getElementById("targetWeekDate").value;
+  document.getElementById("timeFilterStatusText").textContent = `در حال نمایش کارهای یک هفته منتهی به تاریخ: ${textDateValue}`;
   document.getElementById("timeFilterStatusBadge").style.display = 'flex';
   
   closeSpecificWeekModal();
@@ -396,7 +412,6 @@ window.resetToDynamicWeeks = function() {
   filterData();
 };
 
-// فیلتراسیون، سورت و گروه بندی نهایی داده ها روی حافظه لوکال
 document.getElementById("searchInput").addEventListener("input", function() {
   if(this.value.trim() !== "") document.getElementById("clearSearchBtn").classList.remove("hidden");
   else document.getElementById("clearSearchBtn").classList.add("hidden");
@@ -409,10 +424,8 @@ function filterData() {
   const searchTerm = document.getElementById("searchInput").value.toLowerCase();
   const statusFilter = document.getElementById("filterStatus").value;
   const settlementFilter = document.getElementById("filterSettlement").value;
-
   const now = new Date();
 
-  // ۱. فیلتر متنی و وضعیت‌های جدول
   let filtered = allOrders.filter(order => {
     const matchesSearch = 
       (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
@@ -424,14 +437,11 @@ function filterData() {
       
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     const matchesSettlement = settlementFilter === "all" || order.settlementStatus === settlementFilter;
-    
     return matchesSearch && matchesStatus && matchesSettlement;
   });
 
-  // ۲. فیلتر زمانی (یک هفته پیش‌فرض، تمدید هفتگی یا بازه انتخابی)
   filtered = filtered.filter(order => {
     const orderTime = order.createdAt ? new Date(order.createdAt) : new Date();
-    
     if (timeFilterMode === 'dynamic') {
       const thresholdDate = new Date();
       thresholdDate.setDate(now.getDate() - (weeksToShow * 7));
@@ -447,14 +457,12 @@ function filterData() {
     return true;
   });
 
-  // ۳. اعمال سورت انتخابی (ثبت سیستم یا موعد آماده سازی کارها)
   filtered.sort((a, b) => {
     if (currentSortField === 'createdAt') {
       const timeA = a.createdAt ? new Date(a.createdAt) : 0;
       const timeB = b.createdAt ? new Date(b.createdAt) : 0;
       return timeB - timeA; 
     } else {
-      // سورت متنی رشته تاریخ شمسی موعد تحویل (مثال: 1405/03/24) به صورت نزولی
       const dateA = a.estimatedReadyDate || "";
       const dateB = b.estimatedReadyDate || "";
       return dateB.localeCompare(dateA);
@@ -464,24 +472,20 @@ function filterData() {
   renderTable(filtered);
 }
 
-// مدال عکس بزرگ
+// مدال‌ها و ویرایش‌ها (همانند قبل)
 window.openImageModal = function(src) {
   document.getElementById("modalImage").src = src;
   document.getElementById("imageModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 };
-
 window.closeImageModal = function() {
   document.getElementById("imageModal").classList.add("hidden");
   setTimeout(() => { document.getElementById("modalImage").src = ""; }, 300);
   document.body.style.overflow = "auto";
 };
-
-// مدال فرم ویرایش
 window.openEditModal = function(id) {
   const order = allOrders.find(o => o.id === id);
   if(!order) return;
-
   document.getElementById("editOrderId").value = id;
   document.getElementById("editReceiptNumber").value = order.receiptNumber || "";
   document.getElementById("editCustomerName").value = order.customerName || "";
@@ -493,17 +497,14 @@ window.openEditModal = function(id) {
   document.getElementById("editPrintingHouse").value = order.printingHouse || "";
   document.getElementById("editOrderDate").value = order.orderDate || "";
   document.getElementById("editEstimatedReadyDate").value = order.estimatedReadyDate || "";
-
   document.getElementById("editModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 };
-
 window.closeEditModal = function() {
   document.getElementById("editModal").classList.add("hidden");
   document.body.style.overflow = "auto";
 };
 
-// ذخیره فرم ویرایش
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const id = document.getElementById("editOrderId").value;
@@ -534,7 +535,6 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     filterData();
     alert("تغییرات با موفقیت در فایربیس اعمال شد!");
   } catch (error) {
-    console.error("خطا در ویرایش:", error);
     alert("خطا در ذخیره سازی اطلاعات!");
   } finally {
     btn.textContent = "ذخیره تغییرات";
@@ -542,7 +542,6 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   }
 });
 
-// تغییرات مستقیم وضعیت ها از داخل ردیف های جدول
 window.updateSettlement = async function(id, newStatus) {
   try {
     await updateDoc(doc(db, "orders", id), { settlementStatus: newStatus });
