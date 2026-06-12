@@ -231,7 +231,7 @@ body {
         </svg>
       </div>
       <div class="leading-tight">
-        <p class="text-[11px] tracking-[0.25em] uppercase text-ink/40 font-bold mb-1">BIG BEAR PRINT</p>
+        <p class="text-[11px] tracking-[0.25em] uppercase text-ink/40 font-bold mb-1">Jamed PRINT</p>
         <h1 class="text-xl sm:text-2xl font-extrabold text-ink">لیست سفارشات ثبت‌شده</h1>
       </div>
     </div>
@@ -268,7 +268,7 @@ body {
           <option value="all">همه موارد</option>
           <option value="سفارش داده شده">سفارش داده شده</option>
           <option value="در پروسه تولید">در پروسه تولید</option>
-          <option value="درحال ارسال در انبار">درحال ارسال در انبار</option>
+          <option value="درحال ارسال  ">درحال ارسال  </option>
           <option value="تحویل داده شده">تحویل داده شده</option>
           <option value="کنسل شده">کنسل شده</option>
         </select>
@@ -825,7 +825,7 @@ function renderDesktopTable(data) {
       <td class="p-3 text-center">${imagesHtml}</td>
       <td class="p-3 text-center">
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[130px]">
-          ${['سفارش داده شده','در پروسه تولید','درحال ارسال در انبار','تحویل داده شده','کنسل شده']
+          ${['سفارش داده شده','در پروسه تولید','درحال ارسال  ','تحویل داده شده','کنسل شده']
             .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
@@ -876,7 +876,7 @@ function renderMobileCards(data) {
     const statusColors = {
       'سفارش داده شده': 'bg-blue-50 text-blue-700 border-blue-200',
       'در پروسه تولید': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      'درحال ارسال در انبار': 'bg-orange-50 text-orange-700 border-orange-200',
+      'درحال ارسال  ': 'bg-orange-50 text-orange-700 border-orange-200',
       'تحویل داده شده': 'bg-green-50 text-green-700 border-green-200',
       'کنسل شده': 'bg-red-50 text-red-600 border-red-200',
     };
@@ -919,7 +919,7 @@ function renderMobileCards(data) {
           <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
         </select>
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select flex-1 min-w-[130px]">
-          ${['سفارش داده شده','در پروسه تولید','درحال ارسال در انبار','تحویل داده شده','کنسل شده']
+          ${['سفارش داده شده','در پروسه تولید','درحال ارسال  ','تحویل داده شده','کنسل شده']
             .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </div>
