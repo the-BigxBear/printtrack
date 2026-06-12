@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لیست سفارشات | BIG BEAR PRINT</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: { paper: '#F6F1E7', ink: '#221F1B', accent: '#1F3A8C' }, fontFamily: { sans: ['Vazirmatn', 'sans-serif'] } } }
+};
+</script>
+<style>
+  body { background-color: var(--paper); }
+  .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
+  .table-container::-webkit-scrollbar-thumb { background: rgba(34,31,27,.2); border-radius: 4px; }
+  .status-select { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.875rem; }
+</style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 lg:p-10 text-ink">
+
+<div id="authMessage" class="flex justify-center items-center h-screen text-lg font-bold">
+    در حال بررسی دسترسی...
+</div>
+
+<div id="appContainer" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-ink/5 p-6 hidden">
+  
+  <div class="flex justify-between items-center mb-8 border-b border-ink/10 pb-4">
+    <div>
+      <h1 class="text-2xl font-black text-ink">لیست سفارشات ثبت شده</h1>
+      <a href="index.html" class="text-sm text-accent hover:underline mt-1 inline-block">← بازگشت به ثبت سفارش جدید</a>
+    </div>
+    <button id="logoutBtn" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold py-2 px-4 rounded-lg text-sm transition">خروج از سیستم</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-paper/50 p-4 rounded-xl border border-ink/5">
+    <div>
+      <label class="block text-xs font-bold mb-1 opacity-70">جستجو (نام، شماره قبض)</label>
+      <input type="text" id="searchInput" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none" placeholder="مثال: 1024 یا علی...">
+    </div>
+    <div>
+      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت کار</label>
+      <select id="filterStatus" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none">
+        <option value="all">همه موارد</option>
+        <option value="سفارش داده شده">سفارش داده شده</option>
+        <option value="در پروسه تولید">در پروسه تولید</option>
+        <option value="درحال ارسال در انبار">درحال ارسال در انبار</option>
+        <option value="تحویل داده شده">تحویل داده شده</option>
+        <option value="کنسل شده">کنسل شده</option>
+      </select>
+    </div>
+    <div class="flex items-end">
+      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition">بروزرسانی لیست</button>
+    </div>
+  </div>
+
+  <div class="table-container overflow-x-auto border border-ink/10 rounded-xl">
+    <table class="w-full text-right text-sm whitespace-nowrap">
+      <thead class="bg-ink text-white">
+        <tr>
+          <th class="p-3">شماره قبض</th>
+          <th class="p-3">مشتری</th>
+          <th class="p-3">جنس / تیراژ</th>
+          <th class="p-3">تاریخ سفارش / تحویل</th>
+          <th class="p-3">تصاویر</th>
+          <th class="p-3">وضعیت فعلی (قابل تغییر)</th>
+          <th class="p-3 text-center">عملیات</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody" class="divide-y divide-ink/10">
+        </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDHdwvc6pN-_1aAq8t1KGhCCUTHAaeBwXk",
+  authDomain: "printxtracker.firebaseapp.com",
+  projectId: "printxtracker",
+  storageBucket: "printxtracker.firebasestorage.app",
+  messagingSenderId: "581653738273",
+  appId: "1:581653738273:web:aaa594dc4ada2daf7dc460"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
+let allOrders = [];
+
+// بررسی احراز هویت
+onAuthStateChanged(auth, (user) => {
+  if (user && user.email === ALLOWED_EMAIL) {
+    document.getElementById("authMessage").style.display = "none";
+    document.getElementById("appContainer").classList.remove("hidden");
+    loadOrders();
+    runAutoCleanup(); // اجرای پاکسازی خودکار
+  } else {
+    window.location.href = "index.html"; // برگشت به صفحه ورود
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  signOut(auth).then(() => window.location.href = "index.html");
+});
+
+// دریافت سفارشات از دیتابیس
+window.loadOrders = async function() {
+  const tbody = document.getElementById("ordersTableBody");
+  tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-ink/50">در حال بارگذاری...</td></tr>';
+  
+  try {
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    allOrders = [];
+    snapshot.forEach(doc => {
+      allOrders.push({ id: doc.id, ...doc.data() });
+    });
+    renderTable(allOrders);
+  } catch (error) {
+    console.error("خطا در دریافت سفارشات:", error);
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-red-500">خطا در دریافت اطلاعات</td></tr>';
+  }
+};
+
+// رسم جدول و فیلترها
+function renderTable(data) {
+  const tbody = document.getElementById("ordersTableBody");
+  tbody.innerHTML = "";
+  
+  if(data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4">سفارشی یافت نشد.</td></tr>';
+    return;
+  }
+
+  data.forEach(order => {
+    // تولید تگ‌های عکس
+    let imagesHtml = '';
+    if (order.thumbnails && order.thumbnails.length > 0) {
+      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-10 h-10 object-cover rounded border inline-block ml-1 hover:scale-150 transition cursor-pointer" onclick="window.open('${src}')">`).join('');
+    } else {
+      imagesHtml = '<span class="text-xs text-ink/40">بدون عکس/حذف شده</span>';
+    }
+
+    const tr = document.createElement("tr");
+    tr.className = "hover:bg-ink/5 transition";
+    tr.innerHTML = `
+      <td class="p-3 font-bold text-accent">${order.receiptNumber || '-'}</td>
+      <td class="p-3">
+        <div class="font-bold">${order.customerName || '-'}</div>
+        <div class="text-xs text-ink/50">${order.cooperationStatus || ''}</div>
+      </td>
+      <td class="p-3 text-xs">
+        <div>${order.material || '-'}</div>
+        <div class="text-ink/60">تعداد: ${order.quantity || '-'}</div>
+      </td>
+      <td class="p-3 text-xs">
+        <div>ثبت: ${order.orderDate || '-'}</div>
+        <div class="text-ink/60">آماده: ${order.estimatedReadyDate || '-'}</div>
+      </td>
+      <td class="p-3">${imagesHtml}</td>
+      <td class="p-3">
+        <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent">
+          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال در انبار', 'تحویل داده شده', 'کنسل شده']
+            .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>
+      </td>
+      <td class="p-3 text-center">
+        <button onclick="deleteOrder('${order.id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded transition" title="حذف سفارش">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// رویدادهای فیلتر و جستجو
+document.getElementById("searchInput").addEventListener("input", filterData);
+document.getElementById("filterStatus").addEventListener("change", filterData);
+
+function filterData() {
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const statusFilter = document.getElementById("filterStatus").value;
+
+  const filtered = allOrders.filter(order => {
+    const matchesSearch = (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
+                          (order.receiptNumber && order.receiptNumber.includes(searchTerm));
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  renderTable(filtered);
+}
+
+// تغییر وضعیت سفارش
+window.updateStatus = async function(id, newStatus) {
+  try {
+    const updateData = { status: newStatus };
+    
+    // اگر وضعیت به "تحویل داده شده" تغییر کرد، تاریخ الان رو ثبت کن (برای سیستم پاکسازی عکس‌ها)
+    if (newStatus === "تحویل داده شده") {
+      updateData.deliveredAt = new Date().toISOString();
+    }
+
+    await updateDoc(doc(db, "orders", id), updateData);
+    
+    // آپدیت آرایه لوکال بدون نیاز به رفرش کل دیتابیس
+    const orderIndex = allOrders.findIndex(o => o.id === id);
+    if(orderIndex > -1) {
+      allOrders[orderIndex].status = newStatus;
+      if(newStatus === "تحویل داده شده") allOrders[orderIndex].deliveredAt = updateData.deliveredAt;
+    }
+    
+    alert("وضعیت سفارش بروزرسانی شد.");
+  } catch (error) {
+    console.error("خطا در بروزرسانی:", error);
+    alert("خطا در تغییر وضعیت!");
+  }
+};
+
+// حذف سفارش (با تاییدیه)
+window.deleteOrder = async function(id) {
+  const confirmed = confirm("آیا از حذف این سفارش کاملاً مطمئن هستید؟ این عمل غیرقابل بازگشت است.");
+  if (confirmed) {
+    try {
+      await deleteDoc(doc(db, "orders", id));
+      allOrders = allOrders.filter(o => o.id !== id);
+      filterData(); // رندر مجدد جدول
+    } catch (error) {
+      console.error("خطا در حذف:", error);
+      alert("خطا در پاک کردن سفارش!");
+    }
+  }
+};
+
+// تابع پاکسازی خودکار عکس‌های قدیمی
+async function runAutoCleanup() {
+  const tenDaysInMs = 10 * 24 * 60 * 60 * 1000;
+  const now = new Date();
+  let needRefresh = false;
+
+  try {
+    const q = query(collection(db, "orders")); // گرفتن همه برای بررسی
+    const snapshot = await getDocs(q);
+    
+    for (const docSnapshot of snapshot.docs) {
+      const data = docSnapshot.data();
+      // چک کردن سفارشات تحویل داده شده که عکس دارند
+      if (data.status === "تحویل داده شده" && data.deliveredAt && data.thumbnails && data.thumbnails.length > 0) {
+        const deliveryDate = new Date(data.deliveredAt);
+        if (now - deliveryDate > tenDaysInMs) {
+          // حذف عکس‌ها برای آزاد کردن فضا
+          await updateDoc(doc(db, "orders", docSnapshot.id), { thumbnails: [] });
+          needRefresh = true;
+        }
+      }
+    }
+    
+    if (needRefresh) {
+      console.log("عملیات پاکسازی عکس‌های قدیمی (بیش از ۱۰ روز) انجام شد.");
+      loadOrders(); // رفرش لیست برای اعمال تغییرات ظاهری
+    }
+  } catch (error) {
+    console.error("خطا در پاکسازی خودکار:", error);
+  }
+}
+</script>
+</body>
+</html>

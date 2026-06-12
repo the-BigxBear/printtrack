@@ -232,7 +232,8 @@ body{
       <label class="form-label">تاریخ حدودی حاضر شدن</label>
       <input type="text" id="estimatedReadyDate" class="form-input pdate" readonly>
     </div>
-    <div class="form-group">
+    <!-- FIX -->
+    <!-- <div class="form-group">
       <label class="form-label">وضعیت سفارش</label>
       <select id="status" class="form-input">
         <option value="سفارش داده شده">سفارش داده شده</option>
@@ -241,7 +242,7 @@ body{
         <option value="تحویل داده شده">تحویل داده شده</option>
         <option value="کنسل شده">کنسل شده</option>
       </select>
-    </div>
+    </div> -->
 
     <div class="form-group md:col-span-2 lg:col-span-3">
       <label class="form-label">تامبنیل کارها (حداکثر ۲ عکس - تبدیل خودکار به متن کم حجم)</label>
@@ -480,10 +481,10 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
       settlementStatus: document.getElementById("settlementStatus").value,
       orderDate: document.getElementById("orderDate").value,
       estimatedReadyDate: document.getElementById("estimatedReadyDate").value,
-      status: currentStatus,
+      status: "سفارش داده شده",
       thumbnails: compressedImagesBase64,
       createdAt: new Date().toISOString(),
-      deliveredAt: currentStatus === "تحویل داده شده" ? new Date().toISOString() : null
+      deliveredAt: null
     };
 
     await addDoc(collection(db, "orders"), orderData);
