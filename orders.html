@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لیست سفارشات | BIG BEAR PRINT</title>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<title>لیست سفارشات</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -12,186 +16,454 @@
 <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
+<!-- Favicon: SVG inline bear paw print icon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A8C'/%3E%3Cellipse cx='32' cy='38' rx='13' ry='11' fill='%23F6F1E7'/%3E%3Ccircle cx='20' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='32' cy='21' r='5.5' fill='%23F6F1E7'/%3E%3Ccircle cx='44' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='25' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='34' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='39' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='42' r='3' fill='%231F3A8C'/%3E%3C/svg%3E">
+
 <script>
 tailwind.config = {
-  theme: { extend: { colors: { paper: '#F6F1E7', ink: '#221F1B', accent: '#1F3A8C' }, fontFamily: { sans: ['Vazirmatn', 'sans-serif'] } } }
+  theme: {
+    extend: {
+      colors: {
+        paper: '#F6F1E7',
+        ink: '#221F1B',
+        accent: '#1F3A8C',
+        'press-cyan': '#00AEEF',
+        'press-magenta': '#E5007D',
+        'press-yellow': '#FFE000',
+      },
+      fontFamily: {
+        sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
+      },
+    },
+  },
 };
 </script>
+
 <style>
-  body { background-color: var(--paper); }
-  .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
-  .table-container::-webkit-scrollbar-thumb { background: rgba(34,31,27,.2); border-radius: 4px; }
-  .status-select { background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.8rem; cursor: pointer;}
-  .edit-input { width: 100%; border: 1px solid rgba(34,31,27,.2); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; outline: none; }
-  .edit-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,58,140,0.1); }
-  
-  /* استایل‌های تقویم شمسی برای هماهنگی با مدال */
-  .pwt-datepicker-container {
-    font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
-    border-radius: 0.75rem !important;
-    box-shadow: 0 10px 30px rgba(34,31,27,.2) !important;
-    border: 1px solid rgba(34,31,27,.08) !important;
-    z-index: 100000 !important; /* برای قرار گرفتن روی مدال */
-  }
-  .pwt-datepicker-header { background: var(--accent) !important; }
-  .pwt-datepicker-day-text.pwt-datepicker-selected-day { background: var(--accent) !important; }
-  .pwt-datepicker-day-text:hover { background: rgba(31,58,140,.15) !important; }
+:root {
+  --paper: #F6F1E7;
+  --ink: #221F1B;
+  --accent: #1F3A8C;
+}
+* { font-family: 'Vazirmatn', 'Tahoma', sans-serif; }
+
+body {
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(34,31,27,.06) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Color bar like index.html */
+.color-bar { position: fixed; inset-inline: 0; top: 0; height: 5px; display: flex; z-index: 60; }
+.color-bar span { flex: 1 1 0%; }
+
+/* Registration marks */
+.reg-mark { position: absolute; width: 24px; height: 24px; color: var(--ink); opacity: .12; pointer-events: none; }
+.reg-mark.tl { top: 16px; right: 16px; }
+.reg-mark.br { bottom: 16px; left: 16px; }
+
+/* Brand icon */
+.brand-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(31,58,140,.1); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* Form inputs */
+.form-input {
+  width: 100%; background: #fff; border: 1px solid rgba(34,31,27,.14);
+  border-radius: .625rem; padding: .6rem .85rem; font-size: .9rem;
+  color: var(--ink); transition: border-color .15s, box-shadow .15s;
+}
+.form-input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31,58,140,.12);
+}
+
+.flex-input-group { display: flex; gap: .5rem; }
+.btn-add {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: .625rem;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(31,58,140,.08); color: var(--accent);
+  font-size: 1.35rem; font-weight: 700; line-height: 1;
+  transition: background .15s, color .15s;
+}
+.btn-add:hover { background: var(--accent); color: #fff; }
+
+/* Edit input */
+.edit-input {
+  width: 100%; border: 1px solid rgba(34,31,27,.2);
+  border-radius: 0.625rem; padding: 0.55rem 0.75rem; font-size: 0.875rem;
+  outline: none; background: #fff; transition: border-color .15s, box-shadow .15s;
+}
+.edit-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31,58,140,.12);
+}
+
+/* Status select */
+.status-select {
+  background: #fff; border: 1px solid #d1d5db;
+  border-radius: 0.5rem; padding: 0.3rem 0.5rem;
+  font-size: 0.78rem; cursor: pointer;
+}
+
+/* Table */
+.table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+.table-container::-webkit-scrollbar-thumb { background: rgba(34,31,27,.2); border-radius: 9999px; }
+
+/* Active filter tag */
+.filter-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(31,58,140,.1); color: var(--accent);
+  border: 1px solid rgba(31,58,140,.25);
+  border-radius: 9999px; padding: 3px 12px 3px 8px;
+  font-size: 0.72rem; font-weight: 700; cursor: default;
+  transition: background .15s;
+}
+.filter-tag .remove-btn {
+  width: 16px; height: 16px; border-radius: 9999px;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; cursor: pointer;
+  transition: background .15s;
+}
+.filter-tag .remove-btn:hover { background: #E5007D; }
+
+/* Clickable column headers */
+.col-filter-btn {
+  cursor: pointer; user-select: none;
+  transition: color .15s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.col-filter-btn:hover { color: #00AEEF; }
+
+/* Persian datepicker styles */
+.pwt-datepicker-container {
+  font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
+  border-radius: .75rem !important;
+  box-shadow: 0 10px 30px rgba(34,31,27,.18) !important;
+  border: 1px solid rgba(34,31,27,.08) !important;
+  z-index: 100000 !important;
+}
+.pwt-datepicker-header { background: var(--accent) !important; }
+.pwt-datepicker-day-text.pwt-datepicker-selected-day { background: var(--accent) !important; }
+.pwt-datepicker-day-text:hover { background: rgba(31,58,140,.15) !important; }
+
+/* Mobile card view */
+@media (max-width: 767px) {
+  .desktop-table { display: none; }
+  .mobile-cards { display: block; }
+}
+@media (min-width: 768px) {
+  .desktop-table { display: block; }
+  .mobile-cards { display: none; }
+}
+
+/* Mobile order card */
+.order-card {
+  background: #fff; border: 1px solid rgba(34,31,27,.1);
+  border-radius: 1rem; padding: 1rem; margin-bottom: .75rem;
+  box-shadow: 0 2px 8px rgba(34,31,27,.05);
+  transition: box-shadow .15s;
+}
+.order-card:hover { box-shadow: 0 4px 16px rgba(34,31,27,.1); }
+
+.order-card .card-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: .5rem; margin-bottom: .45rem;
+}
+.order-card .card-label {
+  font-size: .68rem; color: rgba(34,31,27,.5); font-weight: 700; white-space: nowrap;
+}
+.order-card .card-value {
+  font-size: .8rem; font-weight: 600; color: var(--ink); text-align: left;
+}
+
+/* Day separator */
+.day-separator {
+  background: rgba(255,224,0,.25);
+  border-top: 1px solid rgba(31,58,140,.1);
+  border-bottom: 1px solid rgba(31,58,140,.1);
+  padding: 8px 14px;
+  font-weight: 900; font-size: .72rem; color: var(--accent);
+  margin: .5rem 0;
+  border-radius: .5rem;
+}
 </style>
 </head>
 <body class="min-h-screen p-4 sm:p-6 lg:p-10 text-ink">
 
-<div id="authMessage" class="flex justify-center items-center h-screen text-lg font-bold">
-    در حال بررسی دسترسی...
+<!-- CMYK Color Bar -->
+<div class="color-bar" aria-hidden="true">
+  <span class="bg-press-cyan"></span>
+  <span class="bg-press-magenta"></span>
+  <span class="bg-press-yellow"></span>
+  <span class="bg-ink"></span>
 </div>
 
-<div id="appContainer" class="max-w-[95%] mx-auto bg-white rounded-2xl shadow-xl border border-ink/5 p-6 hidden">
-  
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-ink/10 pb-4">
-    <div>
-      <h1 class="text-2xl font-black text-ink">لیست سفارشات ثبت شده</h1>
-      <a href="index.html" class="text-sm text-accent hover:underline mt-1 inline-block font-bold">← بازگشت به ثبت سفارش جدید</a>
+<!-- Auth Loading -->
+<div id="authMessage" class="flex justify-center items-center h-screen text-lg font-bold text-ink/60">
+  در حال بررسی دسترسی...
+</div>
+
+<!-- Main App -->
+<div id="appContainer" class="max-w-[1400px] mx-auto bg-white rounded-2xl shadow-xl shadow-ink/5 border border-ink/5 p-5 sm:p-8 hidden relative mt-8">
+
+  <!-- Registration marks -->
+  <svg class="reg-mark tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
+  </svg>
+  <svg class="reg-mark br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
+  </svg>
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4 border-b border-ink/10 pb-6 mb-6">
+    <div class="flex items-center gap-3">
+      <div class="brand-icon">
+        <!-- Bear paw icon -->
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
+          <ellipse cx="12" cy="15" rx="5.5" ry="4.5"/>
+          <circle cx="7" cy="9" r="2"/>
+          <circle cx="12" cy="7.5" r="2.2"/>
+          <circle cx="17" cy="9" r="2"/>
+        </svg>
+      </div>
+      <div class="leading-tight">
+        <p class="text-[11px] tracking-[0.25em] uppercase text-ink/40 font-bold mb-1">BIG BEAR PRINT</p>
+        <h1 class="text-xl sm:text-2xl font-extrabold text-ink">لیست سفارشات ثبت‌شده</h1>
+      </div>
     </div>
-    <button id="logoutBtn" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold py-2 px-4 rounded-lg text-sm transition shadow-sm">خروج از سیستم</button>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="index.html" class="bg-accent text-white hover:bg-accent/90 text-xs font-bold py-2 px-4 rounded-lg transition shadow-md shadow-accent/10">
+        ← ثبت سفارش جدید
+      </a>
+      <button id="logoutBtn" class="bg-ink/5 hover:bg-ink/10 text-ink/70 text-xs font-bold py-2 px-4 rounded-lg transition">خروج</button>
+    </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-paper/50 p-4 rounded-xl border border-ink/5 items-end">
-    <div class="relative">
-      <label class="block text-xs font-bold mb-1 opacity-70">جستجو (قبض، مشتری، طراح، چاپخانه)</label>
-      <input type="text" id="searchInput" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white pr-8" placeholder="مثال: علی، طراح ۱، 1024...">
-      <button id="clearSearchBtn" class="absolute left-2 top-[32px] text-ink/40 hover:text-red-500 font-bold text-xs hidden" onclick="clearSearch()">✕ حذف فیلتر</button>
+  <!-- ========== FILTER PANEL ========== -->
+  <div class="bg-paper/60 border border-ink/8 rounded-2xl p-4 mb-5">
+    <!-- Row 1: Text Search + Status filters -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+      <!-- Text search -->
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">🔍 جستجوی متنی (قبض، مشتری، طراح، چاپخانه)</label>
+        <input type="text" id="searchInput" class="form-input" placeholder="مثال: چاپخانه، طراح ، شماره قبض">
+      </div>
+      <!-- Settlement filter -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت مالی</label>
+        <select id="filterSettlement" class="form-input">
+          <option value="all">همه موارد</option>
+          <option value="تسویه نشده">تسویه نشده</option>
+          <option value="تسویه شده">تسویه شده</option>
+        </select>
+      </div>
+      <!-- Order status filter -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت سفارش</label>
+        <select id="filterStatus" class="form-input">
+          <option value="all">همه موارد</option>
+          <option value="سفارش داده شده">سفارش داده شده</option>
+          <option value="در پروسه تولید">در پروسه تولید</option>
+          <option value="درحال ارسال در انبار">درحال ارسال در انبار</option>
+          <option value="تحویل داده شده">تحویل داده شده</option>
+          <option value="کنسل شده">کنسل شده</option>
+        </select>
+      </div>
     </div>
-    <div>
-      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت مالی</label>
-      <select id="filterSettlement" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white">
-        <option value="all">همه موارد</option>
-        <option value="تسویه نشده">تسویه نشده</option>
-        <option value="تسویه شده">تسویه شده</option>
-      </select>
+
+    <!-- Row 2: Dropdown multi-filters (designer, material, dates) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">طراح</label>
+        <select id="filterDesigner" class="form-input">
+          <option value="all">همه طراحان</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">جنس کار</label>
+        <select id="filterMaterial" class="form-input">
+          <option value="all">همه جنس‌ها</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">📅 تاریخ ثبت سفارش</label>
+        <input type="text" id="filterOrderDate" class="form-input text-center" readonly placeholder="انتخاب تاریخ..." style="cursor:pointer;">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">📅 تاریخ تحویل</label>
+        <input type="text" id="filterDeliveryDate" class="form-input text-center" readonly placeholder="انتخاب تاریخ..." style="cursor:pointer;">
+      </div>
     </div>
-    <div>
-      <label class="block text-xs font-bold mb-1 opacity-70">فیلتر وضعیت سفارش</label>
-      <select id="filterStatus" class="w-full border border-ink/20 rounded-lg p-2 text-sm focus:border-accent outline-none bg-white">
-        <option value="all">همه موارد</option>
-        <option value="سفارش داده شده">سفارش داده شده</option>
-        <option value="در پروسه تولید">در پروسه تولید</option>
-        <option value="درحال ارسال در انبار">درحال ارسال در انبار</option>
-        <option value="تحویل داده شده">تحویل داده شده</option>
-        <option value="کنسل شده">کنسل شده</option>
-      </select>
-    </div>
-    <div>
-      <button onclick="loadOrders()" class="w-full bg-accent text-white font-bold py-2 rounded-lg text-sm hover:bg-accent/90 transition shadow-md shadow-accent/20">بروزرسانی کل لیست</button>
+
+    <!-- Row 3: Active filter tags + actions -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div id="activeFiltersContainer" class="flex flex-wrap gap-2 items-center">
+        <!-- Active filter tags are injected here -->
+      </div>
+      <button onclick="loadOrders()" class="bg-accent text-white font-bold py-2 px-5 rounded-lg text-xs hover:bg-accent/90 transition shadow-md shadow-accent/20 flex-shrink-0">
+        🔄 بروزرسانی
+      </button>
     </div>
   </div>
 
-  <div id="timeFilterStatusBadge" class="hidden mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-xl text-xs font-bold justify-between items-center animate-pulse">
+  <!-- Time filter badge -->
+  <div id="timeFilterStatusBadge" class="hidden mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2.5 rounded-xl text-xs font-bold flex justify-between items-center">
     <span id="timeFilterStatusText">در حال نمایش بازه زمانی خاص...</span>
-    <button onclick="resetToDynamicWeeks()" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md transition">بازگشت به هفته جاری</button>
+    <button onclick="resetToDynamicWeeks()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition">بازگشت به هفته جاری</button>
   </div>
 
-  <div class="table-container overflow-x-auto border border-ink/10 rounded-xl mb-6">
+  <!-- ========== DESKTOP TABLE ========== -->
+  <div class="desktop-table table-container overflow-x-auto border border-ink/10 rounded-xl mb-5">
     <table class="w-full text-right text-sm whitespace-nowrap min-w-[1100px]">
-      <thead class="bg-ink text-white">
+      <thead class="bg-ink text-white sticky top-0 z-10">
         <tr>
           <th class="p-3 w-16">قبض</th>
-          <th class="p-3">اطلاعات مشتری (جهت فیلتر کلیک کنید)</th>
+          <th class="p-3">اطلاعات مشتری</th>
           <th class="p-3">مشخصات فنی و همکاران</th>
-          <th class="p-3 w-64 cursor-pointer hover:text-accent transition select-none" onclick="toggleSort()" title="جهت تغییر مرتب‌سازی بین 'زمان ثبت' و 'موعد تحویل' کلیک کنید">
-            تاریخ‌ها (سورت)
+          <th class="p-3 w-60 cursor-pointer hover:text-press-yellow transition select-none" onclick="toggleSort()" title="کلیک برای تغییر مرتب‌سازی">
+            <span id="sortLabel">تاریخ‌ها ↕</span>
           </th>
           <th class="p-3 text-center">وضعیت مالی</th>
           <th class="p-3 text-center">تصاویر</th>
           <th class="p-3 text-center">وضعیت سفارش</th>
-          <th class="p-3 text-center w-36">عملیات مدیریت</th>
+          <th class="p-3 text-center w-36">عملیات</th>
         </tr>
       </thead>
-      <tbody id="ordersTableBody" class="divide-y divide-ink/10">
-        </tbody>
+      <tbody id="ordersTableBody" class="divide-y divide-ink/10"></tbody>
     </table>
   </div>
 
-  <div class="flex flex-col sm:flex-row justify-center items-center gap-4 bg-paper/30 p-4 rounded-xl border border-ink/5">
+  <!-- ========== MOBILE CARDS ========== -->
+  <div class="mobile-cards mb-5" id="mobileCardsContainer"></div>
+
+  <!-- Results count -->
+  <p id="resultsCount" class="text-xs text-ink/50 font-semibold text-center mb-4"></p>
+
+  <!-- Pagination / Load more -->
+  <div class="flex flex-col sm:flex-row justify-center items-center gap-3 bg-paper/30 p-4 rounded-xl border border-ink/5">
     <button onclick="showMoreWeeks()" id="loadMoreWeeksBtn" class="bg-ink text-white hover:bg-ink/90 font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-md flex items-center gap-1.5">
-      <span>➕ مشاهده یک هفته بیشتر</span>
+      ➕ مشاهده یک هفته بیشتر
     </button>
     <button onclick="openSpecificWeekModal()" class="bg-white text-ink border border-ink/20 hover:bg-paper font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-      <span>📅 مشاهده رکوردها در یک هفته خاص</span>
+      📅 مشاهده در یک هفته خاص
     </button>
   </div>
-
 </div>
 
-<div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300" onclick="closeImageModal()">
-  <button class="absolute top-6 right-6 text-white hover:text-red-500 font-bold text-4xl cursor-pointer transition transform hover:scale-110">&times;</button>
+<!-- ===== IMAGE MODAL ===== -->
+<div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeImageModal()">
+  <button class="absolute top-6 right-6 text-white hover:text-red-400 font-bold text-4xl cursor-pointer transition">&times;</button>
   <img id="modalImage" class="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl border border-white/10" src="" onclick="event.stopPropagation()">
 </div>
 
+<!-- ===== SPECIFIC WEEK MODAL ===== -->
 <div id="specificWeekModal" class="fixed inset-0 z-[95] hidden bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeSpecificWeekModal()">
-  <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-ink/10 animate-scaleUp" onclick="event.stopPropagation()">
-    <h3 class="text-base font-bold text-ink mb-3 border-b pb-2">یک تاریخ مشخص را انتخاب کنید:</h3>
-    <p class="text-xs text-ink/60 mb-4 leading-relaxed">سیستم سفارشات مربوط به ۷ روزِ منتهی به تاریخ انتخابی شما را فیلتر کرده و نمایش می‌دهد.</p>
-    <input type="text" id="targetWeekDate" class="w-full border border-ink/20 rounded-xl p-3 text-sm focus:border-accent outline-none bg-white mb-4 font-bold text-center pdate" readonly placeholder="انتخاب تاریخ...">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-ink/10" onclick="event.stopPropagation()">
+    <h3 class="text-base font-bold text-ink mb-3 border-b pb-3">یک تاریخ مشخص را انتخاب کنید</h3>
+    <p class="text-xs text-ink/60 mb-4 leading-relaxed">سیستم سفارشات مربوط به ۷ روز منتهی به تاریخ انتخابی را نمایش می‌دهد.</p>
+    <input type="text" id="targetWeekDate" class="form-input mb-4 font-bold text-center pdate" readonly placeholder="انتخاب تاریخ...">
     <div class="flex justify-end gap-2">
-      <button onclick="closeSpecificWeekModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
-      <button onclick="submitSpecificWeek()" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-5 rounded-lg text-xs transition shadow-md">اعمال فیلتر زمانی</button>
+      <button onclick="closeSpecificWeekModal()" class="bg-ink/5 hover:bg-ink/10 text-ink/70 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
+      <button onclick="submitSpecificWeek()" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-5 rounded-lg text-xs transition shadow-md">اعمال فیلتر</button>
     </div>
   </div>
 </div>
 
+<!-- ===== EDIT MODAL ===== -->
 <div id="editModal" class="fixed inset-0 z-[90] hidden bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeEditModal()">
-  <div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto shadow-2xl border border-ink/10" onclick="event.stopPropagation()">
-    <div class="flex justify-between items-center border-b pb-3 mb-4">
-      <h3 class="text-lg font-bold text-ink">ویرایش اطلاعات سفارش</h3>
-      <button onclick="closeEditModal()" class="text-ink/50 hover:text-red-500 font-bold text-2xl">&times;</button>
+  <div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto shadow-2xl border border-ink/10" onclick="event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center border-b border-ink/10 pb-4 mb-5">
+      <div class="flex items-center gap-3">
+        <div class="brand-icon w-9 h-9">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
+            <ellipse cx="12" cy="15" rx="5.5" ry="4.5"/>
+            <circle cx="7" cy="9" r="2"/>
+            <circle cx="12" cy="7.5" r="2.2"/>
+            <circle cx="17" cy="9" r="2"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-ink">ویرایش اطلاعات سفارش</h3>
+      </div>
+      <button onclick="closeEditModal()" class="text-ink/40 hover:text-red-500 font-bold text-2xl transition">&times;</button>
     </div>
+
     <form id="editForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <input type="hidden" id="editOrderId">
+      
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">شماره قبض</label>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">شماره قبض</label>
         <input type="text" id="editReceiptNumber" class="edit-input" required>
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">نام مشتری</label>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام مشتری</label>
         <input type="text" id="editCustomerName" class="edit-input" required>
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">نام نمایشی</label>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام نمایشی</label>
         <input type="text" id="editDisplayName" class="edit-input">
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">وضعیت همکاری</label>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت همکاری</label>
         <select id="editCooperationStatus" class="edit-input">
           <option value="مشتری">مشتری</option>
           <option value="همکار">همکار</option>
         </select>
       </div>
+      
+      <!-- Material with dropdown + add -->
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">جنس کار</label>
-        <input type="text" id="editMaterial" class="edit-input">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">جنس کار</label>
+        <div class="flex-input-group">
+          <select id="editMaterial" class="edit-input"></select>
+          <button type="button" onclick="addNewOption('materials')" class="btn-add" title="افزودن گزینه جدید">+</button>
+        </div>
+      </div>
+      
+      <!-- Quantity with dropdown + add -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تیراژ</label>
+        <div class="flex-input-group">
+          <select id="editQuantity" class="edit-input"></select>
+          <button type="button" onclick="addNewOption('quantities')" class="btn-add" title="افزودن گزینه جدید">+</button>
+        </div>
+      </div>
+      
+      <!-- Designer with dropdown + add -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام کاربر طراح</label>
+        <div class="flex-input-group">
+          <select id="editDesignerName" class="edit-input"></select>
+          <button type="button" onclick="addNewOption('designers')" class="btn-add" title="افزودن گزینه جدید">+</button>
+        </div>
+      </div>
+      
+      <!-- Printing house with dropdown + add -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">چاپخانه</label>
+        <div class="flex-input-group">
+          <select id="editPrintingHouse" class="edit-input"></select>
+          <button type="button" onclick="addNewOption('printingHouses')" class="btn-add" title="افزودن گزینه جدید">+</button>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ سفارش</label>
+        <input type="text" id="editOrderDate" class="edit-input pdate-edit" readonly style="cursor:pointer;">
       </div>
       <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">تیراژ</label>
-        <input type="text" id="editQuantity" class="edit-input">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ حدودی حاضر شدن</label>
+        <input type="text" id="editEstimatedReadyDate" class="edit-input pdate-edit" readonly style="cursor:pointer;">
       </div>
-      <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">نام کاربر طراح</label>
-        <input type="text" id="editDesignerName" class="edit-input">
-      </div>
-      <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">چاپخانه</label>
-        <input type="text" id="editPrintingHouse" class="edit-input">
-      </div>
-      <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ سفارش (متن)</label>
-        <input type="text" id="editOrderDate" class="edit-input">
-      </div>
-      <div>
-        <label class="block text-xs font-bold mb-1 text-ink/60">تاریخ حدودی حاضر شدن (متن)</label>
-        <input type="text" id="editEstimatedReadyDate" class="edit-input">
-      </div>
-      <div class="sm:col-span-2 flex justify-end gap-2 border-t pt-4 mt-2">
-        <button type="button" onclick="closeEditModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition">انصراف</button>
-        <button type="submit" id="editSubmitBtn" class="bg-accent hover:bg-accent/90 text-white font-bold py-2 px-6 rounded-lg text-xs transition shadow-md">ذخیره تغییرات</button>
+      
+      <div class="sm:col-span-2 flex justify-end gap-2 border-t border-ink/10 pt-4 mt-2">
+        <button type="button" onclick="closeEditModal()" class="bg-ink/5 hover:bg-ink/10 text-ink/70 font-bold py-2.5 px-5 rounded-lg text-sm transition">انصراف</button>
+        <button type="submit" id="editSubmitBtn" class="bg-accent hover:bg-accent/90 text-white font-bold py-2.5 px-7 rounded-lg text-sm transition shadow-md shadow-accent/20">ذخیره تغییرات</button>
       </div>
     </form>
   </div>
@@ -200,7 +472,7 @@ tailwind.config = {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, query, orderBy, getDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDHdwvc6pN-_1aAq8t1KGhCCUTHAaeBwXk",
@@ -216,14 +488,26 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
 
-// متغیرهای حالت سیستم
+// ============ STATE ============
 let allOrders = [];
-let weeksToShow = 1; 
-let timeFilterMode = 'dynamic'; // dynamic یا specific
-let specificTargetTimestamp = null; // برای ذخیره تایم استمپ تقویم شمسی
+let weeksToShow = 1;
+let timeFilterMode = 'dynamic';
+let specificTargetTimestamp = null;
 let specificTargetDate = null;
-let currentSortField = 'createdAt'; // مبنای سورت پیش‌فرض
+let currentSortField = 'createdAt';
 
+// Multi-filter state (separate from the old single search)
+let activeFilters = {
+  search: '',
+  settlement: 'all',
+  status: 'all',
+  designer: 'all',
+  material: 'all',
+  orderDate: '',     // exact date string match e.g. "1403/02/15"
+  deliveryDate: '',  // exact date string match e.g. "1403/02/20"
+};
+
+// ============ AUTH ============
 onAuthStateChanged(auth, (user) => {
   if (user && user.email === ALLOWED_EMAIL) {
     document.getElementById("authMessage").style.display = "none";
@@ -232,121 +516,328 @@ onAuthStateChanged(auth, (user) => {
     loadOrders();
     runAutoCleanup();
   } else {
-    window.location.href = "index.html"; 
+    window.location.href = "index.html";
   }
 });
-
-function initAppFeatures() {
-  // راه‌اندازی تقویم شمسی روی فیلد انتخاب هفته خاص
-  $('#targetWeekDate').persianDatepicker({ 
-    format: 'YYYY/MM/DD', 
-    initialValue: true, 
-    autoClose: true,
-    onSelect: function(unixTimestamp) {
-      specificTargetTimestamp = unixTimestamp;
-    }
-  });
-  // مقداردهی اولیه به زمان حال برای زمانی که کاربر تاریخی را انتخاب نکرده باشد
-  specificTargetTimestamp = new persianDate().valueOf();
-}
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
 });
 
+// ============ INIT ============
+function initAppFeatures() {
+  // Specific week datepicker
+  $('#targetWeekDate').persianDatepicker({
+    format: 'YYYY/MM/DD',
+    initialValue: false,
+    autoClose: true,
+    onSelect: function(unixTimestamp) {
+      specificTargetTimestamp = unixTimestamp;
+    }
+  });
+  specificTargetTimestamp = new persianDate().valueOf();
+
+  // Filter datepickers – orderDate and deliveryDate
+  $('#filterOrderDate').persianDatepicker({
+    format: 'YYYY/MM/DD',
+    initialValue: false,
+    autoClose: true,
+    onSelect: function() {
+      // value is set on the input; we read it on change
+    }
+  });
+  $('#filterOrderDate').on('change', function() {
+    const val = $(this).val().trim();
+    activeFilters.orderDate = val;
+    renderFilterTags();
+    renderFilteredData();
+  });
+
+  $('#filterDeliveryDate').persianDatepicker({
+    format: 'YYYY/MM/DD',
+    initialValue: false,
+    autoClose: true,
+    onSelect: function() {}
+  });
+  $('#filterDeliveryDate').on('change', function() {
+    const val = $(this).val().trim();
+    activeFilters.deliveryDate = val;
+    renderFilterTags();
+    renderFilteredData();
+  });
+
+  // Edit modal datepickers (initialized when modal opens)
+  initEditDatepickers();
+
+  // Dropdown listeners
+  document.getElementById("searchInput").addEventListener("input", function() {
+    activeFilters.search = this.value.trim();
+    renderFilterTags();
+    renderFilteredData();
+  });
+  document.getElementById("filterSettlement").addEventListener("change", function() {
+    activeFilters.settlement = this.value;
+    renderFilterTags();
+    renderFilteredData();
+  });
+  document.getElementById("filterStatus").addEventListener("change", function() {
+    activeFilters.status = this.value;
+    renderFilterTags();
+    renderFilteredData();
+  });
+  document.getElementById("filterDesigner").addEventListener("change", function() {
+    activeFilters.designer = this.value;
+    renderFilterTags();
+    renderFilteredData();
+  });
+  document.getElementById("filterMaterial").addEventListener("change", function() {
+    activeFilters.material = this.value;
+    renderFilterTags();
+    renderFilteredData();
+  });
+}
+
+function initEditDatepickers() {
+  // We initialize on first open (see openEditModal)
+}
+
+// ============ LOAD ORDERS ============
 window.loadOrders = async function() {
   const tbody = document.getElementById("ordersTableBody");
-  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت کل اطلاعات از فایربیس...</td></tr>';
-  
+  const mobileContainer = document.getElementById("mobileCardsContainer");
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</td></tr>';
+  mobileContainer.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</p>';
+
   try {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     allOrders = [];
-    snapshot.forEach(doc => {
-      allOrders.push({ id: doc.id, ...doc.data() });
-    });
-    filterData();
+    snapshot.forEach(docSnap => allOrders.push({ id: docSnap.id, ...docSnap.data() }));
+
+    // Populate filter dropdowns
+    populateFilterDropdowns();
+    renderFilteredData();
   } catch (error) {
-    console.error("خطا در دریافت سفارشات:", error);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور! دوباره تلاش کنید.</td></tr>';
+    console.error(error);
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور!</td></tr>';
   }
 };
 
-function renderTable(data) {
+function populateFilterDropdowns() {
+  const designers = [...new Set(allOrders.map(o => o.designerName).filter(Boolean))].sort();
+  const materials = [...new Set(allOrders.map(o => o.material).filter(Boolean))].sort();
+
+  const designerSel = document.getElementById("filterDesigner");
+  const materialSel = document.getElementById("filterMaterial");
+
+  designerSel.innerHTML = '<option value="all">همه طراحان</option>';
+  designers.forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d; opt.textContent = d;
+    designerSel.appendChild(opt);
+  });
+
+  materialSel.innerHTML = '<option value="all">همه جنس‌ها</option>';
+  materials.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m; opt.textContent = m;
+    materialSel.appendChild(opt);
+  });
+}
+
+// ============ FILTER TAGS RENDERING ============
+function renderFilterTags() {
+  const container = document.getElementById("activeFiltersContainer");
+  container.innerHTML = '';
+
+  const tags = [];
+
+  if (activeFilters.search) tags.push({ label: `جستجو: ${activeFilters.search}`, key: 'search', clearVal: '' });
+  if (activeFilters.settlement !== 'all') tags.push({ label: `مالی: ${activeFilters.settlement}`, key: 'settlement', clearVal: 'all' });
+  if (activeFilters.status !== 'all') tags.push({ label: `وضعیت: ${activeFilters.status}`, key: 'status', clearVal: 'all' });
+  if (activeFilters.designer !== 'all') tags.push({ label: `طراح: ${activeFilters.designer}`, key: 'designer', clearVal: 'all' });
+  if (activeFilters.material !== 'all') tags.push({ label: `جنس: ${activeFilters.material}`, key: 'material', clearVal: 'all' });
+  if (activeFilters.orderDate) tags.push({ label: `تاریخ ثبت: ${activeFilters.orderDate}`, key: 'orderDate', clearVal: '' });
+  if (activeFilters.deliveryDate) tags.push({ label: `تاریخ تحویل: ${activeFilters.deliveryDate}`, key: 'deliveryDate', clearVal: '' });
+
+  if (tags.length === 0) {
+    container.innerHTML = '<span class="text-xs text-ink/35 font-semibold">بدون فیلتر فعال</span>';
+    return;
+  }
+
+  tags.forEach(tag => {
+    const el = document.createElement("div");
+    el.className = "filter-tag";
+    el.innerHTML = `${tag.label} <span class="remove-btn" onclick="removeFilter('${tag.key}','${tag.clearVal}')">✕</span>`;
+    container.appendChild(el);
+  });
+}
+
+window.removeFilter = function(key, clearVal) {
+  activeFilters[key] = clearVal;
+
+  // Sync UI controls
+  if (key === 'search') document.getElementById("searchInput").value = '';
+  if (key === 'settlement') document.getElementById("filterSettlement").value = 'all';
+  if (key === 'status') document.getElementById("filterStatus").value = 'all';
+  if (key === 'designer') document.getElementById("filterDesigner").value = 'all';
+  if (key === 'material') document.getElementById("filterMaterial").value = 'all';
+  if (key === 'orderDate') { document.getElementById("filterOrderDate").value = ''; }
+  if (key === 'deliveryDate') { document.getElementById("filterDeliveryDate").value = ''; }
+
+  renderFilterTags();
+  renderFilteredData();
+};
+
+// ============ CORE FILTER + RENDER ============
+function renderFilteredData() {
+  const searchTerm = activeFilters.search.toLowerCase();
+  const now = new Date();
+
+  let filtered = allOrders.filter(order => {
+    // Text search
+    const matchesSearch = !searchTerm || (
+      (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
+      (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
+      (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
+      (order.material && order.material.toLowerCase().includes(searchTerm)) ||
+      (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
+      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm))
+    );
+
+    const matchesSettlement = activeFilters.settlement === 'all' || order.settlementStatus === activeFilters.settlement;
+    const matchesStatus = activeFilters.status === 'all' || order.status === activeFilters.status;
+    const matchesDesigner = activeFilters.designer === 'all' || order.designerName === activeFilters.designer;
+    const matchesMaterial = activeFilters.material === 'all' || order.material === activeFilters.material;
+
+    // Date filters: match on orderDate and estimatedReadyDate strings
+    const matchesOrderDate = !activeFilters.orderDate || (order.orderDate && order.orderDate === activeFilters.orderDate);
+    const matchesDeliveryDate = !activeFilters.deliveryDate || (order.estimatedReadyDate && order.estimatedReadyDate === activeFilters.deliveryDate);
+
+    return matchesSearch && matchesSettlement && matchesStatus && matchesDesigner && matchesMaterial && matchesOrderDate && matchesDeliveryDate;
+  });
+
+  // Time window filter
+  filtered = filtered.filter(order => {
+    const orderTime = order.createdAt ? new Date(order.createdAt) : new Date();
+    if (timeFilterMode === 'dynamic') {
+      const threshold = new Date();
+      threshold.setDate(now.getDate() - (weeksToShow * 7));
+      threshold.setHours(0, 0, 0, 0);
+      return orderTime >= threshold;
+    } else if (timeFilterMode === 'specific') {
+      const endWindow = new Date(specificTargetDate);
+      endWindow.setHours(23, 59, 59, 999);
+      const startWindow = new Date(specificTargetDate);
+      startWindow.setDate(startWindow.getDate() - 7);
+      startWindow.setHours(0, 0, 0, 0);
+      return orderTime >= startWindow && orderTime <= endWindow;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    if (currentSortField === 'createdAt') {
+      return (b.createdAt ? new Date(b.createdAt) : 0) - (a.createdAt ? new Date(a.createdAt) : 0);
+    } else {
+      return (b.estimatedReadyDate || "").localeCompare(a.estimatedReadyDate || "");
+    }
+  });
+
+  document.getElementById("resultsCount").textContent = `${filtered.length} سفارش یافت شد`;
+  renderDesktopTable(filtered);
+  renderMobileCards(filtered);
+}
+
+// Keep the old filterData alias
+window.filterData = renderFilteredData;
+
+// ============ DESKTOP TABLE ============
+function renderDesktopTable(data) {
   const tbody = document.getElementById("ordersTableBody");
   tbody.innerHTML = "";
-  
-  if(data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/70">هیچ سفارشی در این بازه زمانی با فیلترهای فوق پیدا نشد.</td></tr>';
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-10 font-bold text-ink/50">هیچ سفارشی با این فیلترها یافت نشد.</td></tr>';
     return;
   }
 
   let lastDayLabel = "";
 
   data.forEach(order => {
-    let orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
+    const orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
     let dayLabel = "نامشخص";
     try {
       dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp);
-    } catch(e) {
-      dayLabel = order.orderDate || "تاریخ نامشخص";
-    }
+    } catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
 
     if (dayLabel !== lastDayLabel) {
-      const separatorTr = document.createElement("tr");
-      separatorTr.className = "bg-slate-100 border-y border-ink/10 text-ink font-black text-xs select-none";
-      separatorTr.innerHTML = `<td colspan="8" class="p-2.5 text-right bg-amber-50/70 font-black text-accent text-xs">📅 محموله‌های روز: ${dayLabel}</td>`;
-      tbody.appendChild(separatorTr);
+      const sep = document.createElement("tr");
+      sep.className = "select-none";
+      sep.innerHTML = `<td colspan="8" class="p-2.5 text-right bg-amber-50/70 border-y border-ink/8 font-black text-accent text-xs">📅 محموله‌های روز: ${dayLabel}</td>`;
+      tbody.appendChild(sep);
       lastDayLabel = dayLabel;
     }
 
-    let imagesHtml = '';
-    if (order.thumbnails && order.thumbnails.length > 0) {
-      imagesHtml = order.thumbnails.map(src => `<img src="${src}" class="w-11 h-11 object-cover rounded-lg border border-ink/10 inline-block mx-0.5 hover:scale-110 hover:border-accent transition cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('');
-    } else {
-      imagesHtml = '<span class="text-[10px] bg-ink/5 px-2 py-1 rounded text-ink/40">بدون تصویر</span>';
-    }
+    let imagesHtml = order.thumbnails && order.thumbnails.length > 0
+      ? order.thumbnails.map(src => `<img src="${src}" class="w-11 h-11 object-cover rounded-lg border border-ink/10 inline-block mx-0.5 hover:scale-110 hover:border-accent transition cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('')
+      : '<span class="text-[10px] bg-ink/5 px-2 py-1 rounded text-ink/40">بدون تصویر</span>';
 
     const tr = document.createElement("tr");
-    tr.className = "hover:bg-ink/5 transition duration-150";
+    tr.className = "hover:bg-ink/3 transition duration-150";
     tr.innerHTML = `
       <td class="p-3 font-black text-accent text-base">${order.receiptNumber || '-'}</td>
       <td class="p-3">
-        <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.customerName}')">${order.customerName || '-'}</div>
-        <div class="text-[11px] text-ink/60 mt-0.5">نمایشی: <span class="font-semibold cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.displayName}')">${order.displayName || '-'}</span></div>
-        <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold cursor-pointer hover:bg-accent hover:text-white transition" onclick="setSearchValue('${order.cooperationStatus}')">${order.cooperationStatus || 'مشتری'}</div>
+        <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="addTagFilter('search','${(order.customerName||'').replace(/'/g,"\\'")}','${order.customerName||''}')">${order.customerName || '-'}</div>
+        <div class="text-[11px] text-ink/55 mt-0.5">نمایشی: <span class="font-semibold">${order.displayName || '-'}</span></div>
+        <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold">${order.cooperationStatus || 'مشتری'}</div>
       </td>
       <td class="p-3 text-xs">
-        <div class="font-bold text-ink mb-1"><span class="cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.material}')">${order.material || '-'}</span> <span class="text-ink/50 font-normal">(تیراژ: ${order.quantity || '-'})</span></div>
-        <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.designerName}')">${order.designerName || '-'}</span></div>
-        <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="setSearchValue('${order.printingHouse}')">${order.printingHouse || '-'}</span></div>
+        <div class="font-bold text-ink mb-1 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('material','${(order.material||'').replace(/'/g,"\\'")}')">
+          ${order.material || '-'} <span class="text-ink/45 font-normal">(تیراژ: ${order.quantity || '-'})</span>
+        </div>
+        <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('designer','${(order.designerName||'').replace(/'/g,"\\'")}')">
+          ${order.designerName || '-'}
+        </span></div>
+        <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80">${order.printingHouse || '-'}</span></div>
       </td>
       <td class="p-3 text-xs">
-        <div class="mb-1 text-ink/80"><span class="opacity-60">ثبت:</span> <span class="font-bold">${order.orderDate || '-'}</span></div>
-        <div class="text-accent"><span class="opacity-70">آماده:</span> <span class="font-bold">${order.estimatedReadyDate || '-'}</span></div>
+        <div class="mb-1 text-ink/80">
+          <span class="opacity-60">ثبت:</span>
+          <span class="font-bold cursor-pointer hover:text-accent hover:underline" onclick="addDateFilter('orderDate','${order.orderDate||''}')" title="فیلتر بر اساس این تاریخ">
+            ${order.orderDate || '-'}
+          </span>
+        </div>
+        <div class="text-accent">
+          <span class="opacity-70">آماده:</span>
+          <span class="font-bold cursor-pointer hover:text-accent/70 hover:underline" onclick="addDateFilter('deliveryDate','${order.estimatedReadyDate||''}')" title="فیلتر بر اساس این تاریخ">
+            ${order.estimatedReadyDate || '-'}
+          </span>
+        </div>
       </td>
       <td class="p-3 text-center">
         <select onchange="updateSettlement('${order.id}', this.value)" class="status-select font-bold text-center outline-none ${order.settlementStatus === 'تسویه شده' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
-          <option value="تسویه نشده" ${order.settlementStatus === 'تسویه نشده' ? 'selected' : ''}>تسویه نشده</option>
+          <option value="تسویه نشده" ${order.settlementStatus !== 'تسویه شده' ? 'selected' : ''}>تسویه نشده</option>
           <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
         </select>
       </td>
       <td class="p-3 text-center">${imagesHtml}</td>
       <td class="p-3 text-center">
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[130px]">
-          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال در انبار', 'تحویل داده شده', 'کنسل شده']
+          ${['سفارش داده شده','در پروسه تولید','درحال ارسال در انبار','تحویل داده شده','کنسل شده']
             .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
       <td class="p-3 text-center">
         <div class="flex items-center justify-center gap-1.5">
-          <button onclick="openEditModal('${order.id}')" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition shadow-sm border border-blue-700 gap-1" title="ویرایش">
+          <button onclick="openEditModal('${order.id}')" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition shadow-sm gap-1" title="ویرایش">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
-            <span>ویرایش</span>
+            ویرایش
           </button>
-          <button onclick="deleteOrder('${order.id}')" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs transition shadow-sm border border-red-700 gap-1" title="حذف دائمی">
+          <button onclick="deleteOrder('${order.id}')" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs transition shadow-sm gap-1" title="حذف">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            <span>حذف</span>
+            حذف
           </button>
         </div>
       </td>
@@ -355,124 +846,168 @@ function renderTable(data) {
   });
 }
 
-window.setSearchValue = function(val) {
-  if(!val || val === '-') return;
-  document.getElementById("searchInput").value = val;
-  document.getElementById("clearSearchBtn").classList.remove("hidden");
-  filterData();
+// ============ MOBILE CARDS ============
+function renderMobileCards(data) {
+  const container = document.getElementById("mobileCardsContainer");
+  container.innerHTML = "";
+
+  if (data.length === 0) {
+    container.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">هیچ سفارشی یافت نشد.</p>';
+    return;
+  }
+
+  let lastDayLabel = "";
+
+  data.forEach(order => {
+    const orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
+    let dayLabel = "نامشخص";
+    try {
+      dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp);
+    } catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
+
+    if (dayLabel !== lastDayLabel) {
+      const sep = document.createElement("div");
+      sep.className = "day-separator";
+      sep.textContent = `📅 ${dayLabel}`;
+      container.appendChild(sep);
+      lastDayLabel = dayLabel;
+    }
+
+    const statusColors = {
+      'سفارش داده شده': 'bg-blue-50 text-blue-700 border-blue-200',
+      'در پروسه تولید': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      'درحال ارسال در انبار': 'bg-orange-50 text-orange-700 border-orange-200',
+      'تحویل داده شده': 'bg-green-50 text-green-700 border-green-200',
+      'کنسل شده': 'bg-red-50 text-red-600 border-red-200',
+    };
+    const statusClass = statusColors[order.status] || 'bg-ink/5 text-ink/60 border-ink/10';
+
+    let imagesHtml = '';
+    if (order.thumbnails && order.thumbnails.length > 0) {
+      imagesHtml = `<div class="flex gap-2 mt-3 overflow-x-auto pb-1">` +
+        order.thumbnails.map(src => `<img src="${src}" class="w-16 h-16 object-cover rounded-xl border border-ink/10 flex-shrink-0 cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('') +
+        `</div>`;
+    }
+
+    const card = document.createElement("div");
+    card.className = "order-card";
+    card.innerHTML = `
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <span class="text-xl font-black text-accent">#${order.receiptNumber || '-'}</span>
+          <span class="mr-2 text-xs font-bold text-ink/50">${order.cooperationStatus || ''}</span>
+        </div>
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-full border ${statusClass}">${order.status || ''}</span>
+      </div>
+      <div class="font-bold text-ink text-sm mb-0.5">${order.customerName || '-'}</div>
+      ${order.displayName ? `<div class="text-xs text-ink/55 mb-2">نمایشی: ${order.displayName}</div>` : ''}
+
+      <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs my-3 bg-paper/60 rounded-xl p-3">
+        <div><span class="text-ink/50">جنس:</span> <span class="font-semibold">${order.material || '-'}</span></div>
+        <div><span class="text-ink/50">تیراژ:</span> <span class="font-semibold">${order.quantity || '-'}</span></div>
+        <div><span class="text-ink/50">طراح:</span> <span class="font-semibold">${order.designerName || '-'}</span></div>
+        <div><span class="text-ink/50">چاپخانه:</span> <span class="font-semibold">${order.printingHouse || '-'}</span></div>
+        <div><span class="text-ink/50">تاریخ ثبت:</span> <span class="font-semibold">${order.orderDate || '-'}</span></div>
+        <div><span class="text-ink/50 text-accent">تحویل:</span> <span class="font-semibold text-accent">${order.estimatedReadyDate || '-'}</span></div>
+      </div>
+
+      ${imagesHtml}
+
+      <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-ink/10">
+        <select onchange="updateSettlement('${order.id}', this.value)" class="status-select font-bold flex-1 min-w-[120px] ${order.settlementStatus === 'تسویه شده' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
+          <option value="تسویه نشده" ${order.settlementStatus !== 'تسویه شده' ? 'selected' : ''}>تسویه نشده</option>
+          <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
+        </select>
+        <select onchange="updateStatus('${order.id}', this.value)" class="status-select flex-1 min-w-[130px]">
+          ${['سفارش داده شده','در پروسه تولید','درحال ارسال در انبار','تحویل داده شده','کنسل شده']
+            .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button onclick="openEditModal('${order.id}')" class="flex-1 flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+          ویرایش
+        </button>
+        <button onclick="deleteOrder('${order.id}')" class="flex-1 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-xs transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          حذف
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ============ CLICK-TO-FILTER HELPERS ============
+window.addTagFilter = function(key, escapedVal, displayVal) {
+  // For text search-based tag click
+  if (!displayVal || displayVal === '-') return;
+  activeFilters.search = displayVal;
+  document.getElementById("searchInput").value = displayVal;
+  renderFilterTags();
+  renderFilteredData();
 };
 
-window.clearSearch = function() {
-  document.getElementById("searchInput").value = "";
-  document.getElementById("clearSearchBtn").classList.add("hidden");
-  filterData();
+window.addDropdownFilter = function(type, val) {
+  if (!val || val === '-') return;
+  if (type === 'designer') {
+    activeFilters.designer = val;
+    document.getElementById("filterDesigner").value = val;
+  } else if (type === 'material') {
+    activeFilters.material = val;
+    document.getElementById("filterMaterial").value = val;
+  }
+  renderFilterTags();
+  renderFilteredData();
 };
 
-// تابع جدید و نامرئی تاگل برای تغییر حالت سورت
+window.addDateFilter = function(type, val) {
+  if (!val || val === '-') return;
+  if (type === 'orderDate') {
+    activeFilters.orderDate = val;
+    document.getElementById("filterOrderDate").value = val;
+  } else if (type === 'deliveryDate') {
+    activeFilters.deliveryDate = val;
+    document.getElementById("filterDeliveryDate").value = val;
+  }
+  renderFilterTags();
+  renderFilteredData();
+};
+
+// ============ SORT ============
 window.toggleSort = function() {
-  currentSortField = (currentSortField === 'createdAt') ? 'estimatedReadyDate' : 'createdAt';
-  filterData();
+  currentSortField = currentSortField === 'createdAt' ? 'estimatedReadyDate' : 'createdAt';
+  document.getElementById("sortLabel").textContent = currentSortField === 'createdAt' ? 'تاریخ‌ها (زمان ثبت ↕)' : 'تاریخ‌ها (موعد تحویل ↕)';
+  renderFilteredData();
 };
 
-window.showMoreWeeks = function() {
-  weeksToShow++;
-  filterData();
-};
+// ============ TIME WINDOW CONTROLS ============
+window.showMoreWeeks = function() { weeksToShow++; renderFilteredData(); };
 
 window.openSpecificWeekModal = function() {
   document.getElementById("specificWeekModal").classList.remove("hidden");
 };
-
 window.closeSpecificWeekModal = function() {
   document.getElementById("specificWeekModal").classList.add("hidden");
 };
-
 window.submitSpecificWeek = function() {
-  if(!specificTargetTimestamp) {
-    alert("مشکلی در دریافت تاریخ پیش آمد. لطفاً دوباره تاریخ را انتخاب کنید.");
-    return;
-  }
-  
+  if (!specificTargetTimestamp) { alert("لطفاً دوباره تاریخ را انتخاب کنید."); return; }
   timeFilterMode = 'specific';
-  // تبدیل تایم استمپ خروجی از تقویم شمسی به فرمت Date جاوااسکریپت
   specificTargetDate = new Date(specificTargetTimestamp);
-  
-  const textDateValue = document.getElementById("targetWeekDate").value;
-  document.getElementById("timeFilterStatusText").textContent = `در حال نمایش کارهای یک هفته منتهی به تاریخ: ${textDateValue}`;
+  const textVal = document.getElementById("targetWeekDate").value;
+  document.getElementById("timeFilterStatusText").textContent = `نمایش کارهای یک هفته منتهی به: ${textVal}`;
   document.getElementById("timeFilterStatusBadge").style.display = 'flex';
-  
   closeSpecificWeekModal();
-  filterData();
+  renderFilteredData();
 };
-
 window.resetToDynamicWeeks = function() {
   timeFilterMode = 'dynamic';
   weeksToShow = 1;
   document.getElementById("timeFilterStatusBadge").style.display = 'none';
-  filterData();
+  renderFilteredData();
 };
 
-document.getElementById("searchInput").addEventListener("input", function() {
-  if(this.value.trim() !== "") document.getElementById("clearSearchBtn").classList.remove("hidden");
-  else document.getElementById("clearSearchBtn").classList.add("hidden");
-  filterData();
-});
-document.getElementById("filterStatus").addEventListener("change", filterData);
-document.getElementById("filterSettlement").addEventListener("change", filterData);
-
-function filterData() {
-  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-  const statusFilter = document.getElementById("filterStatus").value;
-  const settlementFilter = document.getElementById("filterSettlement").value;
-  const now = new Date();
-
-  let filtered = allOrders.filter(order => {
-    const matchesSearch = 
-      (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) || 
-      (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
-      (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
-      (order.material && order.material.toLowerCase().includes(searchTerm)) ||
-      (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
-      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm));
-      
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    const matchesSettlement = settlementFilter === "all" || order.settlementStatus === settlementFilter;
-    return matchesSearch && matchesStatus && matchesSettlement;
-  });
-
-  filtered = filtered.filter(order => {
-    const orderTime = order.createdAt ? new Date(order.createdAt) : new Date();
-    if (timeFilterMode === 'dynamic') {
-      const thresholdDate = new Date();
-      thresholdDate.setDate(now.getDate() - (weeksToShow * 7));
-      return orderTime >= thresholdDate;
-    } else if (timeFilterMode === 'specific') {
-      const endWindow = new Date(specificTargetDate);
-      endWindow.setHours(23,59,59,999);
-      const startWindow = new Date(specificTargetDate);
-      startWindow.setDate(startWindow.getDate() - 7);
-      startWindow.setHours(0,0,0,0);
-      return orderTime >= startWindow && orderTime <= endWindow;
-    }
-    return true;
-  });
-
-  filtered.sort((a, b) => {
-    if (currentSortField === 'createdAt') {
-      const timeA = a.createdAt ? new Date(a.createdAt) : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt) : 0;
-      return timeB - timeA; 
-    } else {
-      const dateA = a.estimatedReadyDate || "";
-      const dateB = b.estimatedReadyDate || "";
-      return dateB.localeCompare(dateA);
-    }
-  });
-
-  renderTable(filtered);
-}
-
-// مدال‌ها و ویرایش‌ها (همانند قبل)
+// ============ IMAGE MODAL ============
 window.openImageModal = function(src) {
   document.getElementById("modalImage").src = src;
   document.getElementById("imageModal").classList.remove("hidden");
@@ -483,23 +1018,71 @@ window.closeImageModal = function() {
   setTimeout(() => { document.getElementById("modalImage").src = ""; }, 300);
   document.body.style.overflow = "auto";
 };
-window.openEditModal = function(id) {
+
+// ============ EDIT MODAL ============
+let editDatepickersInited = false;
+
+async function loadDropdownsForEdit(order) {
+  try {
+    const docRef = doc(db, "settings", "dropdowns");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      populateEditSelect("editMaterial", data.materials || [], order.material || "");
+      populateEditSelect("editQuantity", data.quantities || [], order.quantity || "");
+      populateEditSelect("editDesignerName", data.designers || [], order.designerName || "");
+      populateEditSelect("editPrintingHouse", data.printingHouses || [], order.printingHouse || "");
+    }
+  } catch (e) {
+    console.error("خطا در بارگذاری دراپ‌داون‌ها:", e);
+  }
+}
+
+function populateEditSelect(elementId, items, currentVal) {
+  const select = document.getElementById(elementId);
+  select.innerHTML = "";
+  items.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item; opt.textContent = item;
+    if (item === currentVal) opt.selected = true;
+    select.appendChild(opt);
+  });
+  // If currentVal not in list, add it
+  if (currentVal && !items.includes(currentVal)) {
+    const opt = document.createElement("option");
+    opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
+    select.prepend(opt);
+  }
+}
+
+window.openEditModal = async function(id) {
   const order = allOrders.find(o => o.id === id);
-  if(!order) return;
+  if (!order) return;
+
   document.getElementById("editOrderId").value = id;
   document.getElementById("editReceiptNumber").value = order.receiptNumber || "";
   document.getElementById("editCustomerName").value = order.customerName || "";
   document.getElementById("editDisplayName").value = order.displayName || "";
   document.getElementById("editCooperationStatus").value = order.cooperationStatus || "مشتری";
-  document.getElementById("editMaterial").value = order.material || "";
-  document.getElementById("editQuantity").value = order.quantity || "";
-  document.getElementById("editDesignerName").value = order.designerName || "";
-  document.getElementById("editPrintingHouse").value = order.printingHouse || "";
   document.getElementById("editOrderDate").value = order.orderDate || "";
   document.getElementById("editEstimatedReadyDate").value = order.estimatedReadyDate || "";
+
+  await loadDropdownsForEdit(order);
+
+  // Init datepickers inside modal (once)
+  if (!editDatepickersInited) {
+    $('.pdate-edit').persianDatepicker({
+      format: 'YYYY/MM/DD',
+      initialValue: false,
+      autoClose: true,
+    });
+    editDatepickersInited = true;
+  }
+
   document.getElementById("editModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 };
+
 window.closeEditModal = function() {
   document.getElementById("editModal").classList.add("hidden");
   document.body.style.overflow = "auto";
@@ -527,30 +1110,50 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
   try {
     await updateDoc(doc(db, "orders", id), updatedData);
-    const index = allOrders.findIndex(o => o.id === id);
-    if(index > -1) {
-      allOrders[index] = { ...allOrders[index], ...updatedData };
-    }
+    const idx = allOrders.findIndex(o => o.id === id);
+    if (idx > -1) allOrders[idx] = { ...allOrders[idx], ...updatedData };
     closeEditModal();
-    filterData();
-    alert("تغییرات با موفقیت در فایربیس اعمال شد!");
+    populateFilterDropdowns();
+    renderFilteredData();
+    alert("تغییرات با موفقیت ذخیره شد!");
   } catch (error) {
-    alert("خطا در ذخیره سازی اطلاعات!");
+    alert("خطا در ذخیره اطلاعات!");
   } finally {
     btn.textContent = "ذخیره تغییرات";
     btn.disabled = false;
   }
 });
 
+// ============ ADD NEW DROPDOWN OPTION ============
+window.addNewOption = async function(categoryArrayName) {
+  const newValue = prompt("لطفا مقدار جدید را وارد کنید:");
+  if (!newValue || newValue.trim() === "") return;
+  const docRef = doc(db, "settings", "dropdowns");
+  try {
+    await updateDoc(docRef, { [categoryArrayName]: arrayUnion(newValue.trim()) });
+    alert("با موفقیت اضافه شد!");
+    // Reload dropdowns for current order in edit modal
+    const currentId = document.getElementById("editOrderId").value;
+    const order = allOrders.find(o => o.id === currentId) || {};
+    await loadDropdownsForEdit(order);
+  } catch (error) {
+    try {
+      await setDoc(doc(db, "settings", "dropdowns"), { [categoryArrayName]: [newValue.trim()] }, { merge: true });
+      alert("با موفقیت اضافه شد!");
+    } catch (e2) {
+      alert("خطا در افزودن مقدار.");
+    }
+  }
+};
+
+// ============ QUICK STATUS UPDATES ============
 window.updateSettlement = async function(id, newStatus) {
   try {
     await updateDoc(doc(db, "orders", id), { settlementStatus: newStatus });
-    const orderIndex = allOrders.findIndex(o => o.id === id);
-    if(orderIndex > -1) allOrders[orderIndex].settlementStatus = newStatus;
-    filterData();
-  } catch (error) {
-    alert("خطا در ثبت وضعیت مالی!");
-  }
+    const idx = allOrders.findIndex(o => o.id === id);
+    if (idx > -1) allOrders[idx].settlementStatus = newStatus;
+    renderFilteredData();
+  } catch (error) { alert("خطا در ثبت وضعیت مالی!"); }
 };
 
 window.updateStatus = async function(id, newStatus) {
@@ -558,46 +1161,39 @@ window.updateStatus = async function(id, newStatus) {
     const updateData = { status: newStatus };
     if (newStatus === "تحویل داده شده") updateData.deliveredAt = new Date().toISOString();
     await updateDoc(doc(db, "orders", id), updateData);
-    
-    const orderIndex = allOrders.findIndex(o => o.id === id);
-    if(orderIndex > -1) {
-      allOrders[orderIndex].status = newStatus;
-      if(newStatus === "تحویل داده شده") allOrders[orderIndex].deliveredAt = updateData.deliveredAt;
+    const idx = allOrders.findIndex(o => o.id === id);
+    if (idx > -1) {
+      allOrders[idx].status = newStatus;
+      if (newStatus === "تحویل داده شده") allOrders[idx].deliveredAt = updateData.deliveredAt;
     }
-  } catch (error) {
-    alert("خطا در ذخیره وضعیت سفارش!");
-  }
+  } catch (error) { alert("خطا در ذخیره وضعیت سفارش!"); }
 };
 
+// ============ DELETE ============
 window.deleteOrder = async function(id) {
-  const confirmed = confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ دیتای حذف شده قابل بازیابی نیست.");
-  if (confirmed) {
-    try {
-      await deleteDoc(doc(db, "orders", id));
-      allOrders = allOrders.filter(o => o.id !== id);
-      filterData(); 
-    } catch (error) {
-      alert("خطا در حذف سفارش!");
-    }
-  }
+  if (!confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ دیتای حذف‌شده قابل بازیابی نیست.")) return;
+  try {
+    await deleteDoc(doc(db, "orders", id));
+    allOrders = allOrders.filter(o => o.id !== id);
+    renderFilteredData();
+  } catch (error) { alert("خطا در حذف سفارش!"); }
 };
 
+// ============ AUTO CLEANUP ============
 async function runAutoCleanup() {
   const tenDaysInMs = 10 * 24 * 60 * 60 * 1000;
   const now = new Date();
   try {
-    const q = query(collection(db, "orders")); 
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, "orders"));
     for (const docSnapshot of snapshot.docs) {
       const data = docSnapshot.data();
       if (data.status === "تحویل داده شده" && data.deliveredAt && data.thumbnails && data.thumbnails.length > 0) {
-        const deliveryDate = new Date(data.deliveredAt);
-        if (now - deliveryDate > tenDaysInMs) {
+        if (now - new Date(data.deliveredAt) > tenDaysInMs) {
           await updateDoc(doc(db, "orders", docSnapshot.id), { thumbnails: [] });
         }
       }
     }
-  } catch (error) {}
+  } catch (e) { }
 }
 </script>
 </body>
