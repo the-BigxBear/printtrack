@@ -16,6 +16,8 @@
 <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A8C'/%3E%3Cellipse cx='32' cy='38' rx='13' ry='11' fill='%23F6F1E7'/%3E%3Ccircle cx='20' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='32' cy='21' r='5.5' fill='%23F6F1E7'/%3E%3Ccircle cx='44' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='25' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='34' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='39' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='42' r='3' fill='%231F3A8C'/%3E%3C/svg%3E">
+
 <script>
 tailwind.config = {
   theme: {
@@ -28,20 +30,14 @@ tailwind.config = {
         'press-magenta': '#E5007D',
         'press-yellow': '#FFE000',
       },
-      fontFamily: {
-        sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
-      },
+      fontFamily: { sans: ['Vazirmatn', 'Tahoma', 'sans-serif'] },
     },
   },
 };
 </script>
 
 <style>
-:root{
-  --paper:#F6F1E7;
-  --ink:#221F1B;
-  --accent:#1F3A8C;
-}
+:root{ --paper:#F6F1E7; --ink:#221F1B; --accent:#1F3A8C; }
 *{ font-family:'Vazirmatn','Tahoma',sans-serif; }
 body{
   background-color:var(--paper);
@@ -68,7 +64,7 @@ body{
   margin-bottom:.45rem;
 }
 .form-label::before{
-  content:''; display:inline-block; width:6px; height:6px; border-radius9999px;
+  content:''; display:inline-block; width:6px; height:6px; border-radius:9999px;
   background:var(--accent); opacity:.5; flex-shrink:0;
 }
 .form-input{
@@ -76,11 +72,12 @@ body{
   border-radius:.625rem; padding:.6rem .85rem; font-size:.9rem;
   color:var(--ink); transition:border-color .15s, box-shadow .15s;
 }
-.form-input:focus{
-  outline:none; border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(31,58,140,.12);
-}
+.form-input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,58,140,.12); }
 .form-input[readonly]{ cursor:pointer; background:#fdfcfa; }
+
+.form-input.pending-suggestion{
+  border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.15); background:#fffbeb;
+}
 
 .flex-input-group{ display:flex; gap:.5rem; }
 .btn-add{
@@ -92,7 +89,26 @@ body{
 }
 .btn-add:hover{ background:var(--accent); color:#fff; }
 
-#dropZone.dragover{ border-color:var(--accent); background-color:rgba(31,58,140,.06); }
+#dropZone.dragover, .batch-drop-zone.dragover{ border-color:var(--accent); background-color:rgba(31,58,140,.06); }
+
+.ai-status-bar{
+  display:none; align-items:center; gap:.5rem;
+  background:#fffbeb; border:1px solid #fde68a;
+  border-radius:.625rem; padding:.6rem 1rem;
+  font-size:.78rem; color:#92400e; font-weight:600;
+  margin-bottom:1rem;
+}
+.ai-status-bar.visible{ display:flex; }
+.ai-status-bar.success{ background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+.ai-status-bar.error{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+.ai-status-bar.local{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+
+.spinner{
+  width:16px; height:16px; border:2px solid currentColor;
+  border-top-color:transparent; border-radius:50%;
+  animation:spin .7s linear infinite; flex-shrink:0;
+}
+@keyframes spin{ to{transform:rotate(360deg);} }
 
 ::-webkit-scrollbar{ height:6px; width:6px; }
 ::-webkit-scrollbar-thumb{ background:rgba(34,31,27,.2); border-radius:9999px; }
@@ -102,27 +118,60 @@ body{
   border-radius:.75rem !important;
   box-shadow:0 10px 30px rgba(34,31,27,.18) !important;
   border:1px solid rgba(34,31,27,.08) !important;
+  z-index: 100000 !important;
 }
 .pwt-datepicker-header{ background:var(--accent) !important; }
 .pwt-datepicker-day-text.pwt-datepicker-selected-day{ background:var(--accent) !important; }
 .pwt-datepicker-day-text:hover{ background:rgba(31,58,140,.15) !important; }
+
+/* AI Toggle Switch */
+.ai-toggle-wrapper{
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fff; border:1px solid rgba(34,31,27,.1);
+  border-radius:.75rem; padding:.7rem 1rem; margin-bottom:1rem;
+}
+.toggle-switch{ position:relative; width:42px; height:24px; flex-shrink:0; }
+.toggle-switch input{ opacity:0; width:0; height:0; }
+.toggle-slider{
+  position:absolute; cursor:pointer; inset:0;
+  background-color:#d1d5db; border-radius:9999px; transition:.2s;
+}
+.toggle-slider::before{
+  content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px;
+  background-color:#fff; border-radius:50%; transition:.2s;
+}
+input:checked + .toggle-slider{ background-color:var(--accent); }
+input:checked + .toggle-slider::before{ transform:translateX(-18px); }
+
+/* Batch wizard modal */
+.batch-drop-zone{
+  border:2px dashed rgba(34,31,27,.2); border-radius:.875rem; padding:2rem;
+  text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,.6);
+}
+.batch-drop-zone:hover{ border-color:var(--accent); background:rgba(31,58,140,.05); }
+.batch-progress-pill{
+  background:var(--accent); color:#fff; font-weight:800; font-size:.75rem;
+  padding:.4rem 1rem; border-radius:9999px; display:inline-block;
+}
+.batch-group-thumb{
+  width:64px; height:64px; object-fit:cover; border-radius:.625rem;
+  border:1px solid rgba(34,31,27,.1); flex-shrink:0;
+}
 </style>
 </head>
 <body class="min-h-screen flex justify-center items-center p-4 sm:p-6 lg:p-10">
 
 <div class="color-bar" aria-hidden="true">
-  <span class="bg-press-cyan"></span>
-  <span class="bg-press-magenta"></span>
-  <span class="bg-press-yellow"></span>
-  <span class="bg-ink"></span>
+  <span class="bg-press-cyan"></span><span class="bg-press-magenta"></span>
+  <span class="bg-press-yellow"></span><span class="bg-ink"></span>
 </div>
 
+<!-- AUTH -->
 <div id="authContainer" class="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-ink/5 border border-ink/5 p-8 sm:p-10 text-center">
   <div class="flex items-center justify-center gap-3 mb-8">
     <div class="brand-icon">
       <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6">
-        <circle cx="12" cy="12" r="5"/>
-        <path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
+        <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
       </svg>
     </div>
     <div class="text-right leading-tight">
@@ -130,10 +179,8 @@ body{
       <p class="text-[11px] text-ink/50 font-medium">سیستم مدیریت سفارشات</p>
     </div>
   </div>
-
   <h2 class="text-xl font-bold text-ink mb-2">ورود به پنل مدیریت</h2>
   <p class="text-ink/50 text-sm mb-8">برای دسترسی به سیستم، با حساب گوگل مجاز خود وارد شوید.</p>
-
   <button id="googleLoginBtn" class="w-full bg-ink hover:bg-ink/90 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-3">
     <svg class="w-5 h-5" viewBox="0 0 24 24">
       <path fill="#FFC107" d="M21.35 11.1H12v2.9h5.35c-.5 2.3-2.4 3.9-5.35 3.9-3.2 0-5.85-2.65-5.85-5.9s2.65-5.9 5.85-5.9c1.5 0 2.85.55 3.9 1.5l2.1-2.1C16.65 3.6 14.45 2.7 12 2.7 6.9 2.7 2.7 6.9 2.7 12s4.2 9.3 9.3 9.3c5.4 0 8.95-3.8 8.95-9.15 0-.65-.05-1.1-.1-1.05z"/>
@@ -142,21 +189,15 @@ body{
   </button>
 </div>
 
+<!-- APP -->
 <div id="appContainer" class="w-full max-w-5xl bg-white rounded-2xl shadow-xl shadow-ink/5 border border-ink/5 p-6 sm:p-10 hidden relative">
-  <svg class="reg-mark tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
-  </svg>
-  <svg class="reg-mark br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
-  </svg>
+  <svg class="reg-mark tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/></svg>
+  <svg class="reg-mark br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/></svg>
 
-  <div class="flex flex-wrap items-start justify-between gap-4 border-b border-ink/10 pb-6 mb-8">
+  <div class="flex flex-wrap items-start justify-between gap-4 border-b border-ink/10 pb-6 mb-6">
     <div class="flex items-center gap-3">
       <div class="brand-icon">
-        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6">
-          <circle cx="12" cy="12" r="5"/>
-          <path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
-        </svg>
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/></svg>
       </div>
       <div class="leading-tight">
         <p class="text-[11px] tracking-[0.25em] uppercase text-ink/40 font-bold mb-1">BIG BEAR PRINT</p>
@@ -165,28 +206,49 @@ body{
     </div>
     <div class="flex items-center gap-3">
       <span id="userEmailDisplay" class="text-xs font-semibold text-ink/60 bg-ink/5 px-3 py-1.5 rounded-full"></span>
-      
-      <a href="orders.html" class="bg-accent text-white hover:bg-accent/90 text-xs font-bold py-2 px-4 rounded-lg transition shadow-md shadow-accent/10">
-        مدیریت سفارشات
-      </a>
-
+      <a href="orders.html" class="bg-accent text-white hover:bg-accent/90 text-xs font-bold py-2 px-4 rounded-lg transition shadow-md shadow-accent/10">مدیریت سفارشات</a>
       <button id="logoutBtn" class="bg-ink/5 hover:bg-ink/10 text-ink/70 text-xs font-bold py-2 px-4 rounded-lg transition">خروج</button>
     </div>
   </div>
 
+  <!-- AI Toggle -->
+  <div class="ai-toggle-wrapper">
+    <div>
+      <p class="text-sm font-bold text-ink">استفاده از هوش مصنوعی برای تشخیص خودکار</p>
+      <p class="text-[11px] text-ink/45 mt-0.5">در صورت خاموش بودن، فقط تشخیص محلی (سریع و رایگان) انجام می‌شود</p>
+    </div>
+    <label class="toggle-switch">
+      <input type="checkbox" id="aiToggle" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Batch wizard entry button -->
+  <button type="button" id="openBatchBtn" class="w-full mb-6 flex items-center justify-center gap-2 bg-press-cyan/10 text-accent border border-press-cyan/30 hover:bg-press-cyan/20 font-bold py-3 rounded-xl text-sm transition">
+    📦 آپلود گروهی چند سفارش با هم
+  </button>
+
+  <!-- AI Status Bar -->
+  <div id="aiStatusBar" class="ai-status-bar">
+    <div class="spinner"></div>
+    <span id="aiStatusText">در حال تحلیل اسم فایل...</span>
+  </div>
+
   <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+
     <div class="form-group">
       <label class="form-label">شماره قبض</label>
-      <input type="text" id="receiptNumber" class="form-input" required>
+      <input type="text" id="receiptNumber" class="form-input" placeholder="ثبت نشده">
     </div>
     <div class="form-group">
       <label class="form-label">نام مشتری</label>
-      <input type="text" id="customerName" class="form-input" required>
+      <input type="text" id="customerName" class="form-input">
     </div>
     <div class="form-group">
       <label class="form-label">نام نمایشی</label>
       <input type="text" id="displayName" class="form-input">
     </div>
+
     <div class="form-group">
       <label class="form-label">وضعیت همکاری</label>
       <select id="cooperationStatus" class="form-input">
@@ -194,13 +256,18 @@ body{
         <option value="همکار">همکار</option>
       </select>
     </div>
+
     <div class="form-group">
-      <label class="form-label">جنس کار</label>
+      <label class="form-label">جنس کار <span id="materialHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت)</span></label>
       <div class="flex-input-group">
-        <select id="material" class="form-input"></select>
+        <div class="relative flex-1">
+          <select id="material" class="form-input"></select>
+          <input type="text" id="materialCustom" class="form-input pending-suggestion hidden" placeholder="جنس کار...">
+        </div>
         <button type="button" onclick="addNewOption('materials')" class="btn-add">+</button>
       </div>
     </div>
+
     <div class="form-group">
       <label class="form-label">تیراژ</label>
       <div class="flex-input-group">
@@ -208,13 +275,26 @@ body{
         <button type="button" onclick="addNewOption('quantities')" class="btn-add">+</button>
       </div>
     </div>
+
     <div class="form-group">
-      <label class="form-label">نام کاربر طراح</label>
+      <label class="form-label">سایز کار</label>
       <div class="flex-input-group">
-        <select id="designerName" class="form-input"></select>
+        <select id="size" class="form-input"></select>
+        <button type="button" onclick="addNewOption('sizes')" class="btn-add">+</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">نام کاربر طراح <span id="designerHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت)</span></label>
+      <div class="flex-input-group">
+        <div class="relative flex-1">
+          <select id="designerName" class="form-input"></select>
+          <input type="text" id="designerCustom" class="form-input pending-suggestion hidden" placeholder="نام طراح...">
+        </div>
         <button type="button" onclick="addNewOption('designers')" class="btn-add">+</button>
       </div>
     </div>
+
     <div class="form-group">
       <label class="form-label">چاپخانه</label>
       <div class="flex-input-group">
@@ -222,6 +302,7 @@ body{
         <button type="button" onclick="addNewOption('printingHouses')" class="btn-add">+</button>
       </div>
     </div>
+
     <div class="form-group">
       <label class="form-label">وضعیت تسویه حساب</label>
       <select id="settlementStatus" class="form-input">
@@ -229,23 +310,30 @@ body{
         <option value="تسویه شده">تسویه شده</option>
       </select>
     </div>
+
     <div class="form-group">
       <label class="form-label">تاریخ سفارش</label>
       <input type="text" id="orderDate" class="form-input pdate" readonly>
     </div>
+
     <div class="form-group">
-      <label class="form-label">تاریخ حدودی حاضر شدن</label>
+      <label class="form-label">تاریخ حدودی حاضر شدن <span id="dateHint" class="text-[10px] font-normal text-blue-600 hidden"></span></label>
       <input type="text" id="estimatedReadyDate" class="form-input pdate" readonly>
     </div>
 
     <div class="form-group md:col-span-2 lg:col-span-3">
-      <label class="form-label">تامبنیل کارها (حداکثر ۲ عکس - تبدیل خودکار به متن کم حجم)</label>
+      <label class="form-label">تگ‌ها (با کاما جدا کنید — فقط برای جستجو، در لیست نمایش داده نمی‌شود)</label>
+      <input type="text" id="tagsInput" class="form-input" placeholder="مثال: فوری, تخفیف‌دار, مشتری ویژه">
+    </div>
+
+    <div class="form-group md:col-span-2 lg:col-span-3">
+      <label class="form-label">تامبنیل کارها (حداکثر ۲ عکس — کشیدن فایل یا پوشه)</label>
       <div id="dropZone" class="group border-2 border-dashed border-ink/20 rounded-xl p-8 text-center cursor-pointer transition hover:border-accent hover:bg-accent/5 bg-white/60">
         <svg class="mx-auto w-9 h-9 text-ink/30 group-hover:text-accent transition mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 7.5 12 3m0 0L7.5 7.5M12 3v13.5"/>
         </svg>
         <p class="text-sm font-bold text-ink/70">تصاویر را بکشید و رها کنید</p>
-        <p class="text-xs text-ink/40 mt-1">یا کلیک کنید برای انتخاب · حداکثر ۲ عکس · فشرده‌سازی خودکار</p>
+        <p class="text-xs text-ink/40 mt-1">اسم فایل خودکار تجزیه میشه · حداکثر ۲ عکس</p>
         <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
       </div>
       <div id="previewContainer" class="flex gap-4 mt-4 overflow-x-auto pb-1"></div>
@@ -253,19 +341,98 @@ body{
 
     <div class="form-group md:col-span-2 lg:col-span-3 flex justify-end pt-4 border-t border-ink/10 mt-2">
       <button type="submit" id="submitBtn" class="inline-flex items-center justify-center gap-2 bg-accent text-white font-bold py-3 px-10 rounded-xl shadow-lg shadow-accent/20 hover:bg-accent/90 active:scale-[.98] transition disabled:opacity-60 disabled:cursor-not-allowed">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/>
-        </svg>
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
         ثبت نهایی سفارش
       </button>
     </div>
   </form>
 </div>
 
+<!-- ===== BATCH WIZARD MODAL ===== -->
+<div id="batchModal" class="fixed inset-0 z-[110] hidden bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto shadow-2xl border border-ink/10">
+    <div class="flex justify-between items-center border-b border-ink/10 pb-4 mb-5">
+      <h3 class="text-lg font-bold text-ink">📦 آپلود گروهی چند سفارش</h3>
+      <button onclick="closeBatchModal()" class="text-ink/40 hover:text-red-500 font-bold text-2xl transition">&times;</button>
+    </div>
+
+    <!-- Step 1: drop zone -->
+    <div id="batchDropStep">
+      <p class="text-xs text-ink/55 mb-3 leading-relaxed">
+        چند عکس یا یک پوشه را اینجا بکشید. فایل‌هایی که <b>تک‌حرف اول اسمشان یکسان</b> باشد، یک سفارش با چند عکس در نظر گرفته می‌شوند. بقیه، سفارش‌های مستقل.
+      </p>
+      <div id="batchDropZone" class="batch-drop-zone">
+        <p class="text-sm font-bold text-ink/70">عکس‌ها یا پوشه را بکشید و رها کنید</p>
+        <p class="text-xs text-ink/40 mt-1">یا کلیک کنید برای انتخاب چند فایل</p>
+        <input type="file" id="batchFileInput" accept="image/*" multiple class="hidden">
+      </div>
+      <div id="batchAiStatus" class="ai-status-bar mt-4"><div class="spinner"></div><span>در حال گروه‌بندی و تحلیل...</span></div>
+    </div>
+
+    <!-- Step 2: queue review -->
+    <div id="batchQueueStep" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <span id="batchProgressLabel" class="batch-progress-pill">گروه ۱ از ۳</span>
+        <button type="button" onclick="skipBatchGroup()" class="text-xs font-bold text-ink/50 hover:text-red-500">رد کردن این گروه ›</button>
+      </div>
+
+      <div id="batchThumbsRow" class="flex gap-2 mb-4"></div>
+
+      <form id="batchForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label class="form-label">شماره قبض</label><input type="text" id="b_receiptNumber" class="form-input" placeholder="ثبت نشده"></div>
+        <div><label class="form-label">نام مشتری</label><input type="text" id="b_customerName" class="form-input"></div>
+        <div><label class="form-label">نام نمایشی</label><input type="text" id="b_displayName" class="form-input"></div>
+        <div>
+          <label class="form-label">وضعیت همکاری</label>
+          <select id="b_cooperationStatus" class="form-input"><option value="مشتری">مشتری</option><option value="همکار">همکار</option></select>
+        </div>
+        <div>
+          <label class="form-label">جنس کار</label>
+          <div class="flex-input-group">
+            <select id="b_material" class="form-input hidden"></select>
+            <input type="text" id="b_materialCustom" class="form-input pending-suggestion hidden" placeholder="جنس کار...">
+          </div>
+        </div>
+        <div><label class="form-label">تیراژ</label><select id="b_quantity" class="form-input"></select></div>
+        <div><label class="form-label">سایز کار</label><select id="b_size" class="form-input"></select></div>
+        <div>
+          <label class="form-label">طراح</label>
+          <div class="flex-input-group">
+            <select id="b_designerName" class="form-input hidden"></select>
+            <input type="text" id="b_designerCustom" class="form-input pending-suggestion hidden" placeholder="نام طراح...">
+          </div>
+        </div>
+        <div><label class="form-label">چاپخانه</label><select id="b_printingHouse" class="form-input"></select></div>
+        <div>
+          <label class="form-label">وضعیت تسویه</label>
+          <select id="b_settlementStatus" class="form-input"><option value="تسویه نشده">تسویه نشده</option><option value="تسویه شده">تسویه شده</option></select>
+        </div>
+        <div><label class="form-label">تاریخ سفارش</label><input type="text" id="b_orderDate" class="form-input pdate-batch" readonly></div>
+        <div><label class="form-label">تاریخ تحویل</label><input type="text" id="b_estimatedReadyDate" class="form-input pdate-batch" readonly></div>
+        <div class="sm:col-span-2"><label class="form-label">تگ‌ها (با کاما)</label><input type="text" id="b_tagsInput" class="form-input"></div>
+      </form>
+
+      <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-ink/10">
+        <button type="button" onclick="closeBatchModal()" class="bg-ink/5 hover:bg-ink/10 text-ink/70 font-bold py-2.5 px-5 rounded-lg text-sm transition">انصراف کلی</button>
+        <button type="button" id="batchSubmitBtn" onclick="submitCurrentBatchGroup()" class="bg-accent hover:bg-accent/90 text-white font-bold py-2.5 px-7 rounded-lg text-sm transition shadow-md">تایید و سفارش بعدی</button>
+      </div>
+    </div>
+
+    <!-- Step 3: done -->
+    <div id="batchDoneStep" class="hidden text-center py-8">
+      <p class="text-2xl mb-2">✅</p>
+      <p class="font-bold text-ink">همه سفارش‌ها ثبت شدند!</p>
+      <button onclick="closeBatchModal()" class="mt-4 bg-accent text-white font-bold py-2 px-6 rounded-lg text-sm">بستن</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, query, where, orderBy, limit }
+  from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDHdwvc6pN-_1aAq8t1KGhCCUTHAaeBwXk",
@@ -280,10 +447,33 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
-let compressedImagesBase64 = [];
 
+// ★★★ Gemini API key — only this needs to be set by you ★★★
+const GEMINI_API_KEY = "AIzaSyBz4cTQppBKiIAlaLJfvuT9pdf8FEMOt2I";
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+let compressedImagesBase64 = [];
+let dropdownData = { materials: [], quantities: [], designers: [], printingHouses: [], sizes: [] };
+let learnedMappings = { materialMap: {}, designerMap: {} };
+let pendingSuggestions = { material: null, designer: null };
+
+// ─── LOCALSTORAGE CACHE (this is a real deployed page, not a Claude artifact preview) ──
+const CACHE_TTL_MS = 5 * 60 * 1000;
+function getCached(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) { return null; }
+}
+function setCached(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
   if (user) {
     if (user.email === ALLOWED_EMAIL) {
@@ -302,178 +492,499 @@ onAuthStateChanged(auth, (user) => {
     $("body").removeClass("items-start").addClass("items-center");
   }
 });
-
 $("#googleLoginBtn").click(async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    alert("خطا در فرآیند ورود: " + error.message);
-  }
+  try { await signInWithPopup(auth, provider); }
+  catch (error) { alert("خطا در فرآیند ورود: " + error.message); }
 });
+$("#logoutBtn").click(() => signOut(auth).then(() => window.location.reload()));
 
-$("#logoutBtn").click(() => {
-  signOut(auth).then(() => {
-    window.location.reload();
-  });
-});
-
+// ─── INIT ────────────────────────────────────────────────────────────────────
 function initAppFeatures() {
-  $('.pdate').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: true, autoClose: true });
+  $('.pdate').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: false, autoClose: true });
   initDragAndDrop();
+  initBatchWizard();
+
+  // AI toggle: persisted preference
+  const savedToggle = localStorage.getItem('ai_enabled');
+  const aiEnabled = savedToggle === null ? true : savedToggle === 'true';
+  document.getElementById('aiToggle').checked = aiEnabled;
+  document.getElementById('aiToggle').addEventListener('change', (e) => {
+    localStorage.setItem('ai_enabled', e.target.checked);
+  });
+
   loadDropdowns();
-  runAutoCleanup();
+  loadLearnedMappings();
 }
 
+function isAIEnabled() { return document.getElementById('aiToggle').checked; }
+
+// ─── LEVENSHTEIN FUZZY MATCH (local, free, instant) ──────────────────────────
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+// Normalize by sorting words alphabetically (handles "mat doro" vs "doro mat")
+// then stripping spaces (handles "matt do ro" vs "matdoro")
+function normalizeForFuzzy(s) {
+  return (s || "").toLowerCase().trim().split(/\s+/).sort().join('')
+    .replace(/[^a-z0-9\u0600-\u06FF]/g, '');
+}
+function fuzzyMatchLearned(rawToken, learnedMap) {
+  const normRaw = normalizeForFuzzy(rawToken);
+  if (!normRaw) return null;
+  if (learnedMap[normRaw]) return learnedMap[normRaw];
+  let best = null, bestDist = Infinity;
+  for (const key in learnedMap) {
+    const dist = levenshtein(normRaw, key);
+    if (dist < bestDist) { bestDist = dist; best = learnedMap[key]; }
+  }
+  const threshold = Math.max(2, Math.floor(normRaw.length * 0.3));
+  return (best && bestDist <= threshold) ? best : null;
+}
+
+// ─── LEARNED MAPPINGS (Firestore + cache) ────────────────────────────────────
+async function loadLearnedMappings() {
+  const cached = getCached('cache_learnedMappings');
+  if (cached) learnedMappings = cached;
+
+  try {
+    const docRef = doc(db, "settings", "learnedMappings");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      learnedMappings = { materialMap: docSnap.data().materialMap || {}, designerMap: docSnap.data().designerMap || {} };
+    } else {
+      await setDoc(docRef, { materialMap: {}, designerMap: {} });
+    }
+    setCached('cache_learnedMappings', learnedMappings);
+  } catch (e) { console.warn("Learned mapping load failed, using cache:", e); }
+}
+
+async function saveLearnedMapping(type, rawToken, confirmedValue) {
+  const normKey = normalizeForFuzzy(rawToken);
+  if (!normKey || !confirmedValue) return;
+  const field = type === 'material' ? 'materialMap' : 'designerMap';
+  learnedMappings[field][normKey] = confirmedValue;
+  setCached('cache_learnedMappings', learnedMappings);
+  try {
+    const docRef = doc(db, "settings", "learnedMappings");
+    await updateDoc(docRef, { [`${field}.${normKey}`]: confirmedValue });
+  } catch (e) { console.warn("Could not persist learned mapping:", e); }
+}
+
+// ─── FOLDER-AWARE FILE COLLECTION (drag & drop, handles dropped folders) ─────
+function readEntryAsync(entry) {
+  return new Promise((resolve) => {
+    if (entry.isFile) {
+      entry.file(file => resolve([{ file, folderName: null }]));
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      let collected = [];
+      function readBatch() {
+        dirReader.readEntries(async (entries) => {
+          if (entries.length === 0) { resolve(collected); return; }
+          for (const sub of entries) {
+            if (sub.isFile) {
+              await new Promise(res => sub.file(file => { collected.push({ file, folderName: entry.name }); res(); }));
+            }
+          }
+          readBatch();
+        });
+      }
+      readBatch();
+    } else { resolve([]); }
+  });
+}
+async function getFilesFromDropEvent(e) {
+  const items = e.dataTransfer && e.dataTransfer.items;
+  if (!items || items.length === 0) {
+    return Array.from((e.dataTransfer ? e.dataTransfer.files : e.target.files) || []).map(file => ({ file, folderName: null }));
+  }
+  let results = [];
+  for (let i = 0; i < items.length; i++) {
+    const entry = items[i].webkitGetAsEntry && items[i].webkitGetAsEntry();
+    if (entry) {
+      results = results.concat(await readEntryAsync(entry));
+    } else {
+      const file = items[i].getAsFile && items[i].getAsFile();
+      if (file) results.push({ file, folderName: null });
+    }
+  }
+  return results.filter(r => r.file.type.startsWith('image/'));
+}
+
+// ─── DRAG & DROP (single order) ───────────────────────────────────────────────
 function initDragAndDrop() {
   const dropZone = document.getElementById("dropZone");
   const fileInput = document.getElementById("fileInput");
-
   dropZone.addEventListener("click", () => fileInput.click());
   dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("dragover"); });
   dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
-  dropZone.addEventListener("drop", (e) => {
+  dropZone.addEventListener("drop", async (e) => {
     e.preventDefault();
     dropZone.classList.remove("dragover");
-    handleFiles(e.dataTransfer.files);
+    const items = await getFilesFromDropEvent(e);
+    handleFiles(items);
   });
-  fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+  fileInput.addEventListener("change", async (e) => {
+    const items = Array.from(e.target.files).map(file => ({ file, folderName: null }));
+    handleFiles(items);
+  });
 }
 
-async function handleFiles(files) {
-  if (compressedImagesBase64.length + files.length > 2) {
+async function handleFiles(items) {
+  if (compressedImagesBase64.length + items.length > 2) {
     alert("شما حداکثر می‌توانید ۲ عکس آپلود کنید.");
     return;
   }
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (!file.type.startsWith('image/')) continue;
+  const compressed = await Promise.all(items.map(it => compressAndGetBase64(it.file, 70)));
+  compressed.forEach(b64 => { if (b64) compressedImagesBase64.push(b64); });
+  renderPreviews();
 
-    const base64Str = await compressAndGetBase64(file, 70);
-    compressedImagesBase64.push(base64Str);
-    renderPreviews();
+  const first = items[0];
+  const filename = first.file.name.replace(/\.[^.]+$/, '');
+  const folderFallback = first.folderName || (first.file.webkitRelativePath ? first.file.webkitRelativePath.split('/').slice(-2, -1)[0] : null);
+  await parseAndApply(filename, folderFallback);
+}
+
+// ─── LOCAL PARSING PIPELINE ───────────────────────────────────────────────────
+function hasQuantityToken(tokens) { return tokens.some(t => /^\d+$/.test(t)); }
+const SIZE_PATTERN = /^(A[0-6]|B[0-6]|[0-9]+[x×*][0-9]+)$/i;
+
+function parseFilenameLocal(filename, folderFallback) {
+  let tokens = filename.trim().split(/\s+/).filter(Boolean);
+  let usedFolderFallback = false;
+
+  if (!hasQuantityToken(tokens) && folderFallback) {
+    const folderTokens = folderFallback.trim().split(/\s+/).filter(Boolean);
+    if (hasQuantityToken(folderTokens)) { tokens = folderTokens; usedFolderFallback = true; }
+  }
+  if (!hasQuantityToken(tokens)) return { success: false };
+
+  const qIdx = tokens.findIndex(t => /^\d+$/.test(t));
+  const quantity = tokens[qIdx];
+  const after = tokens.slice(qIdx + 1);
+  if (after.length < 2) return { success: false };
+
+  const displayName = after[after.length - 1];
+  const designerRaw = after[after.length - 2];
+  let materialTokens = after.slice(0, after.length - 2);
+
+  let size = null;
+  materialTokens = materialTokens.filter(t => {
+    if (SIZE_PATTERN.test(t)) { size = t.toUpperCase(); return false; }
+    return true;
+  });
+  const materialRaw = materialTokens.join(' ');
+
+  // Local fuzzy match against learned mappings (free, instant)
+  let material = fuzzyMatchLearned(materialRaw, learnedMappings.materialMap);
+  let materialMatched = !!material;
+  if (!materialMatched && dropdownData.materials.includes(materialRaw)) { material = materialRaw; materialMatched = true; }
+  if (!material) material = materialRaw;
+
+  let designer = fuzzyMatchLearned(designerRaw, learnedMappings.designerMap);
+  let designerMatched = !!designer;
+  if (!designerMatched && dropdownData.designers.includes(designerRaw)) { designer = designerRaw; designerMatched = true; }
+  if (!designer) designer = designerRaw;
+
+  return {
+    success: true, quantity, materialRaw, material, materialMatched,
+    designerRaw, designer, designerMatched, displayName, size, usedFolderFallback
+  };
+}
+
+// ─── AI (only called when local match fails AND toggle is on) ────────────────
+// Only the filename TEXT is ever sent — never image bytes.
+async function callGeminiBatch(unresolvedItems) {
+  // unresolvedItems: [{ index, materialRaw, designerRaw }]
+  const materialsStr = dropdownData.materials.join('، ') || '(خالی)';
+  const designersStr = dropdownData.designers.join('، ') || '(خالی)';
+
+  const listStr = unresolvedItems.map(it =>
+    `index ${it.index}: material_raw="${it.materialRaw}", designer_raw="${it.designerRaw}"`
+  ).join('\n');
+
+  const prompt = `
+You are matching messy/misspelled Persian print-shop tokens to the closest item in existing dropdown lists.
+
+Available materials: ${materialsStr}
+Available designers: ${designersStr}
+
+For each entry below, find the closest matching material and designer from the lists above (allow misspellings, word reordering, mixed Farsi/English). If no reasonable match exists, return the raw value unchanged with matched=false.
+
+${listStr}
+
+Respond ONLY with a valid JSON array, no markdown:
+[{"index": 0, "material": "...", "materialMatched": true/false, "designer": "...", "designerMatched": true/false}]
+`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+      })
+    }
+  );
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || "Gemini API error");
+  const raw = data.candidates[0].content.parts[0].text.trim();
+  const clean = raw.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+// ─── PARSE + APPLY (single order form) ───────────────────────────────────────
+async function parseAndApply(filename, folderFallback) {
+  const local = parseFilenameLocal(filename, folderFallback);
+  if (!local.success) {
+    setAIStatus('error', 'الگوی اسم فایل تشخیص داده نشد — لطفاً دستی پر کنید');
+    return;
+  }
+
+  applyQuantityAndSize(local);
+  applyDisplayAndCustomer(local.displayName);
+
+  const needsAI = (!local.materialMatched || !local.designerMatched);
+
+  if (!needsAI) {
+    setAIStatus('local', `تشخیص محلی موفق ✓${local.usedFolderFallback ? ' (از اسم پوشه)' : ''}`);
+    setSelectValue("material", local.material); hideMaterialCustom();
+    setSelectValue("designerName", local.designer); hideDesignerCustom();
+    await suggestEstimatedDate(local.material);
+    return;
+  }
+
+  if (!isAIEnabled()) {
+    if (local.materialMatched) { setSelectValue("material", local.material); hideMaterialCustom(); }
+    else { showMaterialCustom(local.materialRaw); pendingSuggestions.material = { raw: local.materialRaw, value: local.materialRaw }; }
+    if (local.designerMatched) { setSelectValue("designerName", local.designer); hideDesignerCustom(); }
+    else { showDesignerCustom(local.designerRaw); pendingSuggestions.designer = { raw: local.designerRaw, value: local.designerRaw }; }
+    setAIStatus('local', 'تشخیص محلی (بخشی) — هوش مصنوعی خاموش است');
+    if (local.materialMatched) await suggestEstimatedDate(local.material);
+    return;
+  }
+
+  setAIStatus('loading', 'در حال تحلیل با هوش مصنوعی...');
+  try {
+    const result = await callGeminiBatch([{ index: 0, materialRaw: local.materialMatched ? '' : local.materialRaw, designerRaw: local.designerMatched ? '' : local.designerRaw }]);
+    const r = result[0];
+
+    if (local.materialMatched) { setSelectValue("material", local.material); hideMaterialCustom(); }
+    else if (r.materialMatched) { setSelectValue("material", r.material); hideMaterialCustom(); pendingSuggestions.material = { raw: local.materialRaw, value: r.material }; await saveLearnedMapping('material', local.materialRaw, r.material); }
+    else { showMaterialCustom(r.material || local.materialRaw); pendingSuggestions.material = { raw: local.materialRaw, value: r.material || local.materialRaw }; }
+
+    if (local.designerMatched) { setSelectValue("designerName", local.designer); hideDesignerCustom(); }
+    else if (r.designerMatched) { setSelectValue("designerName", r.designer); hideDesignerCustom(); pendingSuggestions.designer = { raw: local.designerRaw, value: r.designer }; await saveLearnedMapping('designer', local.designerRaw, r.designer); }
+    else { showDesignerCustom(r.designer || local.designerRaw); pendingSuggestions.designer = { raw: local.designerRaw, value: r.designer || local.designerRaw }; }
+
+    setAIStatus('success', 'فیلدها با هوش مصنوعی تکمیل شدند ✓');
+    await suggestEstimatedDate(local.materialMatched ? local.material : (r.materialMatched ? r.material : local.materialRaw));
+  } catch (err) {
+    console.error("AI parse error:", err);
+    if (!local.materialMatched) { showMaterialCustom(local.materialRaw); pendingSuggestions.material = { raw: local.materialRaw, value: local.materialRaw }; }
+    if (!local.designerMatched) { showDesignerCustom(local.designerRaw); pendingSuggestions.designer = { raw: local.designerRaw, value: local.designerRaw }; }
+    setAIStatus('error', 'خطا در هوش مصنوعی — مقادیر خام نمایش داده شد');
   }
 }
 
-window.removeImage = function(index) {
-  compressedImagesBase64.splice(index, 1);
-  renderPreviews();
-};
-
-function renderPreviews() {
-  const previewContainer = document.getElementById("previewContainer");
-  previewContainer.innerHTML = "";
-  compressedImagesBase64.forEach((base64Str, index) => {
-    const approxSizeKB = (base64Str.length * (3/4)) / 1024;
-    const div = document.createElement("div");
-    div.className = "relative border border-ink/10 rounded-xl p-2 bg-white shadow-sm flex-shrink-0";
-    div.innerHTML = `
-      <img src="${base64Str}" class="h-24 w-24 object-cover rounded-lg">
-      <span class="absolute -top-2 -left-2 bg-press-magenta text-white text-xs rounded-full h-6 w-6 flex items-center justify-center cursor-pointer font-bold shadow" onclick="removeImage(${index})">✕</span>
-      <p class="text-[10px] text-center mt-1.5 font-sans text-ink/40">${approxSizeKB.toFixed(1)} KB</p>
-    `;
-    previewContainer.appendChild(div);
-  });
+function applyQuantityAndSize(local) {
+  if (local.quantity) {
+    if (!dropdownData.quantities.includes(local.quantity)) {
+      addOptionToFirestoreAndCache('quantities', local.quantity);
+    }
+    setSelectValue("quantity", local.quantity);
+  }
+  if (local.size) {
+    if (!dropdownData.sizes.includes(local.size)) {
+      addOptionToFirestoreAndCache('sizes', local.size);
+    }
+    setSelectValue("size", local.size);
+  }
+}
+function applyDisplayAndCustomer(displayName) {
+  if (!displayName) return;
+  document.getElementById("displayName").value = displayName;
+  const customerName = document.getElementById("customerName");
+  if (!customerName.value.trim()) customerName.value = displayName;
 }
 
-function compressAndGetBase64(file, targetSizeKB) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_DIMENSION = 900;
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          if (width > height) {
-            height = Math.round((height * MAX_DIMENSION) / width);
-            width = MAX_DIMENSION;
-          } else {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        let quality = 0.7;
-        function checkQuality(q) {
-          const dataUrl = canvas.toDataURL('image/jpeg', q);
-          const sizeKB = (dataUrl.length * (3/4)) / 1024;
-          if (sizeKB <= targetSizeKB || q <= 0.1) {
-            resolve(dataUrl);
-          } else {
-            checkQuality(q - 0.1);
-          }
-        }
-        checkQuality(quality);
-      };
-    };
-  });
+// ─── SMART DATE SUGGESTION FROM FIRESTORE ────────────────────────────────────
+async function suggestEstimatedDate(material) {
+  if (!material) return;
+  try {
+    const q = query(collection(db, "orders"), where("material", "==", material), orderBy("createdAt", "desc"), limit(20));
+    const snap = await getDocs(q);
+    const gaps = [];
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      if (d.orderDate && d.estimatedReadyDate) {
+        const toApproxDays = s => { const p = s.split('/').map(Number); return p[0] * 365 + p[1] * 30 + p[2]; };
+        const diff = toApproxDays(d.estimatedReadyDate) - toApproxDays(d.orderDate);
+        if (diff > 0 && diff < 60) gaps.push(diff);
+      }
+    });
+    if (gaps.length === 0) return;
+    gaps.sort((a, b) => a - b);
+    const median = gaps[Math.floor(gaps.length / 2)];
+    const estimated = new persianDate().add('day', median);
+    const estStr = `${estimated.year()}/${String(estimated.month()).padStart(2, '0')}/${String(estimated.date()).padStart(2, '0')}`;
+    document.getElementById("estimatedReadyDate").value = estStr;
+    const hint = document.getElementById("dateHint");
+    hint.textContent = `(بر اساس ${gaps.length} سفارش قبلی — ${median} روز)`;
+    hint.classList.remove("hidden");
+  } catch (err) { console.warn("Date suggestion failed:", err); }
 }
 
+// ─── CUSTOM INPUT HELPERS ─────────────────────────────────────────────────────
+function showMaterialCustom(value) {
+  document.getElementById("material").classList.add("hidden");
+  const c = document.getElementById("materialCustom"); c.classList.remove("hidden"); c.value = value;
+  document.getElementById("materialHint").classList.remove("hidden");
+}
+function hideMaterialCustom() {
+  document.getElementById("material").classList.remove("hidden");
+  document.getElementById("materialCustom").classList.add("hidden");
+  document.getElementById("materialHint").classList.add("hidden");
+}
+function showDesignerCustom(value) {
+  document.getElementById("designerName").classList.add("hidden");
+  const c = document.getElementById("designerCustom"); c.classList.remove("hidden"); c.value = value;
+  document.getElementById("designerHint").classList.remove("hidden");
+}
+function hideDesignerCustom() {
+  document.getElementById("designerName").classList.remove("hidden");
+  document.getElementById("designerCustom").classList.add("hidden");
+  document.getElementById("designerHint").classList.add("hidden");
+}
+
+// ─── AI STATUS BAR ───────────────────────────────────────────────────────────
+function setAIStatus(type, text) {
+  const bar = document.getElementById("aiStatusBar");
+  const textEl = document.getElementById("aiStatusText");
+  bar.className = "ai-status-bar visible";
+  if (type === 'success') bar.classList.add('success');
+  if (type === 'error') bar.classList.add('error');
+  if (type === 'local') bar.classList.add('local');
+  const spinner = bar.querySelector('.spinner');
+  if (spinner) spinner.style.display = type === 'loading' ? 'block' : 'none';
+  textEl.textContent = text;
+  if (type !== 'loading') setTimeout(() => bar.classList.remove('visible'), 4000);
+}
+
+// ─── DROPDOWNS (with cache) ───────────────────────────────────────────────────
 async function loadDropdowns() {
+  const cached = getCached('cache_dropdowns');
+  if (cached) { dropdownData = cached; populateAllSelects(); }
+
   const docRef = doc(db, "settings", "dropdowns");
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    const data = docSnap.data();
-    populateSelect("material", data.materials || []);
-    populateSelect("quantity", data.quantities || []);
-    populateSelect("designerName", data.designers || []);
-    populateSelect("printingHouse", data.printingHouses || []);
+    const d = docSnap.data();
+    dropdownData = { materials: d.materials || [], quantities: d.quantities || [], designers: d.designers || [], printingHouses: d.printingHouses || [], sizes: d.sizes || [] };
   } else {
-    await setDoc(docRef, { materials: [], quantities: [], designers: [], printingHouses: [] });
+    await setDoc(docRef, { materials: [], quantities: [], designers: [], printingHouses: [], sizes: [] });
   }
+  setCached('cache_dropdowns', dropdownData);
+  populateAllSelects();
 }
-
+function populateAllSelects() {
+  populateSelect("material", dropdownData.materials);
+  populateSelect("quantity", dropdownData.quantities);
+  populateSelect("designerName", dropdownData.designers);
+  populateSelect("printingHouse", dropdownData.printingHouses);
+  populateSelect("size", dropdownData.sizes);
+}
 function populateSelect(elementId, items) {
   const select = document.getElementById(elementId);
+  if (!select) return;
+  const current = select.value;
   select.innerHTML = "";
   items.forEach(item => {
-    const option = document.createElement("option");
-    option.value = item;
-    option.textContent = item;
-    select.appendChild(option);
+    const o = document.createElement("option"); o.value = item; o.textContent = item; select.appendChild(o);
   });
+  if (current) select.value = current;
 }
-
-window.addNewOption = async function(categoryArrayName) {
+function setSelectValue(elementId, value) {
+  const select = document.getElementById(elementId);
+  if (!select) return;
+  const opt = Array.from(select.options).find(o => o.value === value);
+  if (opt) select.value = value;
+}
+async function addOptionToFirestoreAndCache(categoryArrayName, value) {
+  dropdownData[categoryArrayName] = [...new Set([...dropdownData[categoryArrayName], value])];
+  setCached('cache_dropdowns', dropdownData);
+  populateAllSelects();
+  try {
+    const docRef = doc(db, "settings", "dropdowns");
+    await updateDoc(docRef, { [categoryArrayName]: arrayUnion(value) });
+  } catch (e) { console.warn("Could not persist new option:", e); }
+}
+window.addNewOption = async function (categoryArrayName) {
   const newValue = prompt("لطفا مقدار جدید را وارد کنید:");
   if (!newValue || newValue.trim() === "") return;
-  const docRef = doc(db, "settings", "dropdowns");
-  try {
-    await updateDoc(docRef, { [categoryArrayName]: arrayUnion(newValue.trim()) });
-    alert("با موفقیت اضافه شد!");
-    loadDropdowns();
-  } catch (error) {
-    alert("خطا در افزودن مقدار.");
-  }
+  await addOptionToFirestoreAndCache(categoryArrayName, newValue.trim());
 };
 
+// ─── FORM SUBMIT (single order) ──────────────────────────────────────────────
 document.getElementById("orderForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = document.getElementById("submitBtn");
+
+  let materialValue = document.getElementById("material").value;
+  const materialCustomEl = document.getElementById("materialCustom");
+  if (!materialCustomEl.classList.contains("hidden")) materialValue = materialCustomEl.value.trim();
+
+  let designerValue = document.getElementById("designerName").value;
+  const designerCustomEl = document.getElementById("designerCustom");
+  if (!designerCustomEl.classList.contains("hidden")) designerValue = designerCustomEl.value.trim();
+
+  let customerName = document.getElementById("customerName").value.trim();
+  const displayName = document.getElementById("displayName").value.trim();
+  if (!customerName && displayName) customerName = displayName;
+
+  const tags = document.getElementById("tagsInput").value.split(',').map(t => t.trim()).filter(Boolean);
+
   btn.textContent = "در حال ثبت سفارش...";
   btn.disabled = true;
 
   try {
+    if (pendingSuggestions.material && materialValue === pendingSuggestions.material.value) {
+      await addOptionToFirestoreAndCache('materials', materialValue);
+      await saveLearnedMapping('material', pendingSuggestions.material.raw, materialValue);
+    }
+    if (pendingSuggestions.designer && designerValue === pendingSuggestions.designer.value) {
+      await addOptionToFirestoreAndCache('designers', designerValue);
+      await saveLearnedMapping('designer', pendingSuggestions.designer.raw, designerValue);
+    }
+
     const orderData = {
-      receiptNumber: document.getElementById("receiptNumber").value,
-      customerName: document.getElementById("customerName").value,
-      displayName: document.getElementById("displayName").value,
+      receiptNumber: document.getElementById("receiptNumber").value.trim() || "ثبت نشده",
+      customerName, displayName,
       cooperationStatus: document.getElementById("cooperationStatus").value,
-      material: document.getElementById("material").value,
+      material: materialValue,
       quantity: document.getElementById("quantity").value,
-      designerName: document.getElementById("designerName").value,
+      size: document.getElementById("size").value || "",
+      designerName: designerValue,
       printingHouse: document.getElementById("printingHouse").value,
       settlementStatus: document.getElementById("settlementStatus").value,
       orderDate: document.getElementById("orderDate").value,
       estimatedReadyDate: document.getElementById("estimatedReadyDate").value,
+      tags,
       status: "سفارش داده شده",
       thumbnails: compressedImagesBase64,
       createdAt: new Date().toISOString(),
@@ -482,11 +993,14 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
 
     await addDoc(collection(db, "orders"), orderData);
     alert("سفارش با موفقیت ثبت شد!");
+
     document.getElementById("orderForm").reset();
     compressedImagesBase64 = [];
+    pendingSuggestions = { material: null, designer: null };
+    hideMaterialCustom(); hideDesignerCustom();
+    document.getElementById("dateHint").classList.add("hidden");
     renderPreviews();
-    loadDropdowns();
-
+    populateAllSelects();
   } catch (error) {
     console.error(error);
     alert("خطا در سیستم ثبت دیتابیس!");
@@ -496,25 +1010,262 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
   }
 });
 
-async function runAutoCleanup() {
-  const tenDaysInMs = 10 * 24 * 60 * 60 * 1000;
-  const now = new Date();
-  try {
-    const q = query(collection(db, "orders"), where("status", "==", "تحویل داده شده"));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(async (docSnapshot) => {
-      const data = docSnapshot.data();
-      if (data.deliveredAt && data.thumbnails && data.thumbnails.length > 0) {
-        const deliveryDate = new Date(data.deliveredAt);
-        if (now - deliveryDate > tenDaysInMs) {
-          await updateDoc(doc(db, "orders", docSnapshot.id), { thumbnails: [] });
-        }
-      }
-    });
-  } catch (error) {
-    console.error(error);
-  }
+// ─── IMAGE COMPRESSION (shared) ───────────────────────────────────────────────
+window.removeImage = function (index) { compressedImagesBase64.splice(index, 1); renderPreviews(); };
+function renderPreviews() {
+  const c = document.getElementById("previewContainer"); c.innerHTML = "";
+  compressedImagesBase64.forEach((src, i) => {
+    const sizeKB = (src.length * 0.75) / 1024;
+    const div = document.createElement("div");
+    div.className = "relative border border-ink/10 rounded-xl p-2 bg-white shadow-sm flex-shrink-0";
+    div.innerHTML = `<img src="${src}" class="h-24 w-24 object-cover rounded-lg">
+      <span class="absolute -top-2 -left-2 bg-press-magenta text-white text-xs rounded-full h-6 w-6 flex items-center justify-center cursor-pointer font-bold shadow" onclick="removeImage(${i})">✕</span>
+      <p class="text-[10px] text-center mt-1.5 text-ink/40">${sizeKB.toFixed(1)} KB</p>`;
+    c.appendChild(div);
+  });
 }
+function compressAndGetBase64(file, targetSizeKB) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        const MAX = 900;
+        if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h * MAX / w); w = MAX; } else { w = Math.round(w * MAX / h); h = MAX; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let q = 0.7;
+        (function check(qq) {
+          const dataUrl = canvas.toDataURL('image/jpeg', qq);
+          const kb = (dataUrl.length * 0.75) / 1024;
+          if (kb <= targetSizeKB || qq <= 0.1) resolve(dataUrl); else check(qq - 0.1);
+        })(q);
+      };
+    };
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ===========================  BATCH WIZARD  ================================
+// ══════════════════════════════════════════════════════════════════════════
+let batchGroups = [];      // [{ prefix, files:[{file,folderName}], thumbs:[base64], parsed:{} }]
+let batchIndex = 0;
+
+function initBatchWizard() {
+  document.getElementById("openBatchBtn").addEventListener("click", openBatchModal);
+  const bz = document.getElementById("batchDropZone");
+  const bi = document.getElementById("batchFileInput");
+  bz.addEventListener("click", () => bi.click());
+  bz.addEventListener("dragover", (e) => { e.preventDefault(); bz.classList.add("dragover"); });
+  bz.addEventListener("dragleave", () => bz.classList.remove("dragover"));
+  bz.addEventListener("drop", async (e) => {
+    e.preventDefault(); bz.classList.remove("dragover");
+    const items = await getFilesFromDropEvent(e);
+    processBatchFiles(items);
+  });
+  bi.addEventListener("change", (e) => {
+    const items = Array.from(e.target.files).map(file => ({ file, folderName: null }));
+    processBatchFiles(items);
+  });
+}
+function openBatchModal() {
+  document.getElementById("batchModal").classList.remove("hidden");
+  document.getElementById("batchDropStep").classList.remove("hidden");
+  document.getElementById("batchQueueStep").classList.add("hidden");
+  document.getElementById("batchDoneStep").classList.add("hidden");
+}
+window.closeBatchModal = function () {
+  document.getElementById("batchModal").classList.add("hidden");
+  batchGroups = []; batchIndex = 0;
+};
+
+function getGroupPrefix(filename) {
+  const trimmed = filename.trim();
+  const firstChar = trimmed[0];
+  if (!firstChar || /^[0-9]$/.test(firstChar)) return null;
+  return firstChar.toLowerCase();
+}
+
+async function processBatchFiles(items) {
+  const statusEl = document.getElementById("batchAiStatus");
+  statusEl.classList.add("visible");
+  statusEl.querySelector('span').textContent = "در حال گروه‌بندی فایل‌ها...";
+
+  // Group by first-character prefix; null prefix = independent group
+  const groups = [];
+  let soloCounter = 0;
+  for (const item of items) {
+    const filename = item.file.name.replace(/\.[^.]+$/, '');
+    const prefix = getGroupPrefix(filename);
+    if (prefix === null) {
+      groups.push({ prefix: `solo_${soloCounter++}`, files: [item] });
+    } else {
+      let existing = groups.find(g => g.prefix === prefix);
+      if (existing) existing.files.push(item);
+      else groups.push({ prefix, files: [item] });
+    }
+  }
+
+  // Parse each group locally first (using first file in group as representative)
+  for (const g of groups) {
+    const repFile = g.files[0];
+    const filename = repFile.file.name.replace(/\.[^.]+$/, '');
+    const folderFallback = repFile.folderName || (repFile.file.webkitRelativePath ? repFile.file.webkitRelativePath.split('/').slice(-2, -1)[0] : null);
+    g.parsed = parseFilenameLocal(filename, folderFallback);
+    g.thumbs = await Promise.all(g.files.map(f => compressAndGetBase64(f.file, 70)));
+  }
+
+  // Collect groups that still need AI (only if toggle on)
+  const unresolved = [];
+  groups.forEach((g, idx) => {
+    if (g.parsed.success && (!g.parsed.materialMatched || !g.parsed.designerMatched)) {
+      unresolved.push({ index: idx, materialRaw: g.parsed.materialMatched ? '' : g.parsed.materialRaw, designerRaw: g.parsed.designerMatched ? '' : g.parsed.designerRaw });
+    }
+  });
+
+  if (unresolved.length > 0 && isAIEnabled()) {
+    statusEl.querySelector('span').textContent = `در حال تحلیل ${unresolved.length} مورد با هوش مصنوعی (یک درخواست)...`;
+    try {
+      const results = await callGeminiBatch(unresolved);
+      results.forEach(r => {
+        const g = groups[r.index];
+        if (!g.parsed.materialMatched && r.materialMatched) { g.parsed.material = r.material; g.parsed.materialMatched = true; saveLearnedMapping('material', g.parsed.materialRaw, r.material); }
+        else if (!g.parsed.materialMatched) { g.parsed.material = r.material || g.parsed.materialRaw; }
+        if (!g.parsed.designerMatched && r.designerMatched) { g.parsed.designer = r.designer; g.parsed.designerMatched = true; saveLearnedMapping('designer', g.parsed.designerRaw, r.designer); }
+        else if (!g.parsed.designerMatched) { g.parsed.designer = r.designer || g.parsed.designerRaw; }
+      });
+    } catch (err) { console.error("Batch AI error:", err); }
+  }
+
+  batchGroups = groups;
+  batchIndex = 0;
+  statusEl.classList.remove("visible");
+  showBatchGroup();
+}
+
+function showBatchGroup() {
+  if (batchIndex >= batchGroups.length) {
+    document.getElementById("batchDropStep").classList.add("hidden");
+    document.getElementById("batchQueueStep").classList.add("hidden");
+    document.getElementById("batchDoneStep").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("batchDropStep").classList.add("hidden");
+  document.getElementById("batchQueueStep").classList.remove("hidden");
+
+  const g = batchGroups[batchIndex];
+  document.getElementById("batchProgressLabel").textContent = `گروه ${batchIndex + 1} از ${batchGroups.length}`;
+
+  const thumbsRow = document.getElementById("batchThumbsRow");
+  thumbsRow.innerHTML = g.thumbs.map(t => `<img src="${t}" class="batch-group-thumb">`).join('');
+
+  // Populate selects fresh for this group
+  populateEditLikeSelect("b_quantity", dropdownData.quantities);
+  populateEditLikeSelect("b_size", dropdownData.sizes);
+  populateEditLikeSelect("b_printingHouse", dropdownData.printingHouses);
+  populateEditLikeSelect("b_material", dropdownData.materials);
+  populateEditLikeSelect("b_designerName", dropdownData.designers);
+
+  document.getElementById("b_receiptNumber").value = "";
+  document.getElementById("b_customerName").value = "";
+  document.getElementById("b_cooperationStatus").value = "مشتری";
+  document.getElementById("b_settlementStatus").value = "تسویه نشده";
+  document.getElementById("b_tagsInput").value = "";
+
+  if (g.parsed.success) {
+    document.getElementById("b_displayName").value = g.parsed.displayName || "";
+    document.getElementById("b_customerName").value = g.parsed.displayName || "";
+    if (g.parsed.quantity) setEditLikeSelectValue("b_quantity", g.parsed.quantity);
+    if (g.parsed.size) setEditLikeSelectValue("b_size", g.parsed.size);
+
+    if (g.parsed.materialMatched) { document.getElementById("b_material").classList.remove("hidden"); document.getElementById("b_materialCustom").classList.add("hidden"); setEditLikeSelectValue("b_material", g.parsed.material); }
+    else { document.getElementById("b_material").classList.add("hidden"); const c = document.getElementById("b_materialCustom"); c.classList.remove("hidden"); c.value = g.parsed.material || g.parsed.materialRaw; }
+
+    if (g.parsed.designerMatched) { document.getElementById("b_designerName").classList.remove("hidden"); document.getElementById("b_designerCustom").classList.add("hidden"); setEditLikeSelectValue("b_designerName", g.parsed.designer); }
+    else { document.getElementById("b_designerName").classList.add("hidden"); const c = document.getElementById("b_designerCustom"); c.classList.remove("hidden"); c.value = g.parsed.designer || g.parsed.designerRaw; }
+  } else {
+    document.getElementById("b_displayName").value = "";
+    document.getElementById("b_material").classList.add("hidden");
+    document.getElementById("b_materialCustom").classList.remove("hidden");
+    document.getElementById("b_designerName").classList.add("hidden");
+    document.getElementById("b_designerCustom").classList.remove("hidden");
+  }
+
+  // (re)init datepickers for this group's date fields
+  $('.pdate-batch').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: false, autoClose: true });
+  document.getElementById("b_orderDate").value = new persianDate().format('YYYY/MM/DD');
+  document.getElementById("b_estimatedReadyDate").value = "";
+}
+function populateEditLikeSelect(id, items) {
+  const sel = document.getElementById(id); sel.innerHTML = "";
+  items.forEach(i => { const o = document.createElement("option"); o.value = i; o.textContent = i; sel.appendChild(o); });
+}
+function setEditLikeSelectValue(id, val) {
+  const sel = document.getElementById(id);
+  const opt = Array.from(sel.options).find(o => o.value === val);
+  if (opt) sel.value = val;
+  else if (val) { const o = document.createElement("option"); o.value = val; o.textContent = val; o.selected = true; sel.prepend(o); }
+}
+
+window.skipBatchGroup = function () { batchIndex++; showBatchGroup(); };
+
+window.submitCurrentBatchGroup = async function () {
+  const g = batchGroups[batchIndex];
+  const btn = document.getElementById("batchSubmitBtn");
+  btn.textContent = "در حال ثبت..."; btn.disabled = true;
+
+  try {
+    let materialValue = document.getElementById("b_material").value;
+    if (!document.getElementById("b_materialCustom").classList.contains("hidden")) materialValue = document.getElementById("b_materialCustom").value.trim();
+    let designerValue = document.getElementById("b_designerName").value;
+    if (!document.getElementById("b_designerCustom").classList.contains("hidden")) designerValue = document.getElementById("b_designerCustom").value.trim();
+
+    if (!dropdownData.materials.includes(materialValue)) await addOptionToFirestoreAndCache('materials', materialValue);
+    if (!dropdownData.designers.includes(designerValue)) await addOptionToFirestoreAndCache('designers', designerValue);
+    if (g.parsed.success) {
+      await saveLearnedMapping('material', g.parsed.materialRaw, materialValue);
+      await saveLearnedMapping('designer', g.parsed.designerRaw, designerValue);
+    }
+
+    let customerName = document.getElementById("b_customerName").value.trim();
+    const displayName = document.getElementById("b_displayName").value.trim();
+    if (!customerName && displayName) customerName = displayName;
+
+    const tags = document.getElementById("b_tagsInput").value.split(',').map(t => t.trim()).filter(Boolean);
+
+    const orderData = {
+      receiptNumber: document.getElementById("b_receiptNumber").value.trim() || "ثبت نشده",
+      customerName, displayName,
+      cooperationStatus: document.getElementById("b_cooperationStatus").value,
+      material: materialValue,
+      quantity: document.getElementById("b_quantity").value || "",
+      size: document.getElementById("b_size").value || "",
+      designerName: designerValue,
+      printingHouse: document.getElementById("b_printingHouse").value || "",
+      settlementStatus: document.getElementById("b_settlementStatus").value,
+      orderDate: document.getElementById("b_orderDate").value,
+      estimatedReadyDate: document.getElementById("b_estimatedReadyDate").value,
+      tags,
+      status: "سفارش داده شده",
+      thumbnails: g.thumbs,
+      createdAt: new Date().toISOString(),
+      deliveredAt: null
+    };
+
+    await addDoc(collection(db, "orders"), orderData);
+    batchIndex++;
+    showBatchGroup();
+  } catch (err) {
+    console.error(err);
+    alert("خطا در ثبت این سفارش!");
+  } finally {
+    btn.textContent = "تایید و سفارش بعدی"; btn.disabled = false;
+  }
+};
 </script>
 </body>
 </html>
