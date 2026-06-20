@@ -1,1 +1,2233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>چیدمان | ابزار ایمپوزیشن تصاویر</title>
+<style>
+  :root{
+    --bg:#15191c;
+    --panel:#1d2226;
+    --panel-2:#242a2f;
+    --line:#33393f;
+    --accent:#ff7a32;
+    --accent-dim:#a8531f;
+    --text:#e8e6e1;
+    --text-dim:#9aa0a6;
+    --good:#5fd17a;
+    --bad:#ff5d5d;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --sans: 'IRANSansX', 'Vazirmatn', Tahoma, sans-serif;
+  }
 
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; height:100%; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    direction:rtl;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .app{
+    display:grid;
+    grid-template-columns: 340px 1fr;
+    min-height:100vh;
+  }
+  @media (max-width: 900px){
+    .app{ grid-template-columns: 1fr; }
+  }
+
+  header{
+    grid-column: 1 / -1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 20px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, var(--panel), var(--bg));
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand .mark{
+    width:34px; height:34px;
+    border:2px solid var(--accent);
+    border-radius:6px;
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent);
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    flex-shrink:0;
+  }
+  .brand .mark::before, .brand .mark::after{
+    content:''; position:absolute; width:6px; height:1px; background:var(--accent);
+  }
+  .brand .mark::before{ right:-8px; top:50%; }
+  .brand .mark::after{ left:-8px; top:50%; }
+  .brand h1{ font-size:16px; margin:0; letter-spacing:.3px; font-weight:700; }
+  .brand .sub{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:1px; }
+
+  .status{ font-family:var(--mono); font-size:12px; color:var(--text-dim); display:flex; gap:16px; flex-wrap:wrap; }
+  .status b{ color:var(--text); }
+  .status .ok{ color:var(--good); }
+  .status .err{ color:var(--bad); }
+
+  aside{
+    background:var(--panel);
+    border-left:1px solid var(--line);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    overflow-y:auto;
+    max-height: calc(100vh - 61px);
+  }
+  .group{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+    background:var(--panel-2);
+  }
+  .group h2{
+    font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent);
+    margin:0 0 12px; font-family:var(--mono); display:flex; align-items:center; gap:8px;
+  }
+  .group h2::before{ content:''; width:8px; height:8px; background:var(--accent); transform:rotate(45deg); display:inline-block; }
+
+  label{ display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px; }
+  .row{ display:flex; gap:8px; margin-bottom:10px; }
+  .row > div{ flex:1; }
+  input[type=text], input[type=number], select{
+    width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
+    padding:8px 10px; border-radius:6px; font-family:var(--mono); font-size:13px;
+    direction:ltr; text-align:left;
+  }
+  select{ direction:rtl; text-align:right; font-family:var(--sans); }
+  input:focus, select:focus{ outline:none; border-color:var(--accent); }
+  input[type=checkbox]{ width:16px; height:16px; accent-color:var(--accent); }
+  .check-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin-bottom:10px; cursor:pointer; }
+
+  button{
+    font-family:var(--sans); font-size:13px; border-radius:6px; border:1px solid var(--line);
+    background:var(--bg); color:var(--text); padding:9px 12px; cursor:pointer; transition:.15s;
+  }
+  button:hover{ border-color:var(--accent); color:var(--accent); }
+  button.primary{ background:var(--accent); border-color:var(--accent); color:#1a1a1a; font-weight:700; }
+  button.primary:hover{ background:#ff8c4d; color:#1a1a1a; }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+  button.danger:hover{ border-color:var(--bad); color:var(--bad); }
+  button.full{ width:100%; }
+  button.small{ padding:5px 8px; font-size:11px; }
+  .btn-row{ display:flex; gap:8px; }
+  .btn-row button{ flex:1; }
+
+  main{ display:flex; flex-direction:column; overflow:hidden; }
+  .toolbar{
+    display:flex; align-items:center; gap:10px; padding:10px 16px;
+    border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:wrap;
+  }
+  .toolbar .spacer{ flex:1; }
+  .toolbar .hint{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+
+  .dropzone{
+    margin:16px; border:2px dashed var(--line); border-radius:12px; padding:30px;
+    text-align:center; color:var(--text-dim); font-size:13px; transition:.15s; cursor:pointer;
+  }
+  .dropzone.drag{ border-color:var(--accent); color:var(--accent); background:rgba(255,122,50,0.05); }
+
+  .stage-wrap{ flex:1; overflow:auto; padding:16px; display:flex; align-items:flex-start; justify-content:center; }
+  .stage{
+    position:relative; background:#0c0e10; border:1px solid var(--line);
+    box-shadow: 0 0 0 1px var(--line), 0 30px 60px -30px rgba(0,0,0,0.8);
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  }
+
+  .margin-zone{
+    position:absolute;
+    background:rgba(255,93,93,0.0);
+    border:1px dashed rgba(255,255,255,0.15);
+    pointer-events:none;
+    transition: background .15s, border-color .15s;
+  }
+  .margin-zone.violated{
+    background:rgba(255,93,93,0.18);
+    border-color:var(--bad);
+  }
+
+  .cm{ position:absolute; width:18px; height:18px; pointer-events:none; }
+  .cm svg{ width:100%; height:100%; display:block; }
+  .cm.tl{ top:-1px; right:-1px; transform: scaleX(-1); }
+  .cm.tr{ top:-1px; left:-1px; }
+  .cm.bl{ bottom:-1px; right:-1px; transform: scale(-1,-1); }
+  .cm.br{ bottom:-1px; left:-1px; transform: scaleY(-1); }
+
+  .tile{
+    position:absolute; border:1px solid rgba(255,122,50,0.5);
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    cursor:grab; box-sizing:border-box; transition: box-shadow .1s;
+  }
+  .tile:hover{ border-color:var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(0,0,0,0.5); z-index:5; }
+  .tile.dragging{ cursor:grabbing; opacity:.85; z-index:50; box-shadow: 0 0 0 2px var(--accent), 0 10px 30px rgba(0,0,0,0.6); }
+  .tile.selected{ box-shadow: 0 0 0 2px var(--good); border-color:var(--good); z-index:6; }
+  .tile.out-of-bounds{ box-shadow: 0 0 0 2px var(--bad); border-color:var(--bad); }
+  .tile .lbl{
+    position:absolute; bottom:2px; left:2px; background:rgba(0,0,0,0.65); color:#fff;
+    font-family:var(--mono); font-size:10px; padding:1px 5px; border-radius:3px;
+    pointer-events:none; white-space:nowrap; direction:ltr;
+  }
+  .tile .rot-handle{
+    position:absolute; top:-22px; right:50%; transform:translateX(50%);
+    width:22px; height:22px; background:var(--panel-2); border:1px solid var(--accent);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:var(--accent); font-size:12px; cursor:pointer; opacity:0; transition:.15s;
+  }
+  .tile:hover .rot-handle, .tile.selected .rot-handle{ opacity:1; }
+
+  .empty-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:var(--text-dim); gap:10px; padding:60px 20px; text-align:center;
+  }
+  .empty-state .big{ font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:2px; }
+
+  .filelist{ display:flex; flex-direction:column; gap:10px; }
+  .fitem{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; }
+  .fitem-top{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+  .fitem-top .nm{
+    font-family:var(--mono); font-size:11.5px; color:var(--text); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; flex:1; direction:ltr; text-align:right;
+  }
+  .fitem-top .dims{ font-family:var(--mono); font-size:10.5px; color:var(--accent); white-space:nowrap; }
+  .fitem-top .del{ cursor:pointer; color:var(--bad); flex-shrink:0; font-size:14px; }
+  .fitem-qty{ display:flex; gap:6px; align-items:center; }
+  .fitem-qty select{ flex:0 0 86px; font-size:11px; padding:6px 8px; }
+  .fitem-qty input{ flex:1; font-size:12px; padding:6px 8px; }
+  .fitem-qty .unit-label{ font-family:var(--mono); font-size:10.5px; color:var(--text-dim); flex:0 0 auto; }
+  .fitem-dims-edit{ display:flex; gap:6px; margin-top:6px; }
+  .fitem-dims-edit input{ font-size:11px; padding:5px 7px; }
+  .fitem-dims-edit .unit-label{ font-family:var(--mono); font-size:10px; color:var(--text-dim); align-self:center; }
+
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:5px; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--accent-dim); }
+
+  .footnote{ font-size:11px; color:var(--text-dim); line-height:1.7; padding-top:4px; border-top:1px dashed var(--line); margin-top:4px; }
+  .footnote b{ color:var(--text); }
+
+  .progress-wrap{ margin-top:8px; height:6px; background:var(--bg); border-radius:3px; overflow:hidden; display:none; }
+  .progress-wrap.show{ display:block; }
+  .progress-bar{ height:100%; width:0%; background:var(--accent); transition:width .15s; }
+
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .modal-bg.show{ display:flex; }
+  .modal{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; width:360px; max-width:100%; }
+  .modal h3{ margin:0 0 12px; font-size:14px; color:var(--accent); }
+  .modal .choice-note{ font-size:11px; color:var(--text-dim); margin-top:-4px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="mark">IM</div>
+      <div>
+        <h1>چیدمان</h1>
+        <div class="sub">IMPOSITION TOOL · mm-based</div>
+      </div>
+    </div>
+    <div class="status">
+      <div>فایل‌ها: <b id="statCount">0</b></div>
+      <div>جا شده: <b id="statFit" class="ok">0</b></div>
+      <div>جا نشده: <b id="statUnfit" class="err">0</b></div>
+      <div>استفاده: <b id="statUsage">۰٪</b></div>
+    </div>
+  </header>
+
+  <aside>
+
+    <div class="group">
+      <h2>پریست بوم</h2>
+      <select id="presetSelect"></select>
+
+      <label class="check-row" style="margin-top:2px;">
+        <input type="checkbox" id="rollModeToggle">
+        حالت رول (عرض ثابت، طول باز)
+      </label>
+
+      <div id="sheetFields">
+        <div class="row">
+          <div>
+            <label>عرض بوم (mm)</label>
+            <input type="number" id="sheetW" value="600" min="1" step="any">
+          </div>
+          <div>
+            <label>ارتفاع بوم (mm)</label>
+            <input type="number" id="sheetH" value="400" min="1" step="any">
+          </div>
+        </div>
+      </div>
+
+      <div id="rollFields" style="display:none;">
+        <div class="row">
+          <div>
+            <label>عرض رول (mm)</label>
+            <input type="number" id="rollW" value="1000" min="1" step="any">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>عنوان پریست جدید</label>
+          <input type="text" id="presetName" placeholder="مثلاً: شیت A1">
+        </div>
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="allowRotation" checked>
+        اجازه چرخش ۹۰ درجه برای جاگیری بهتر
+      </label>
+      <div class="btn-row">
+        <button id="savePreset" class="full">ذخیره پریست</button>
+        <button id="deletePreset" class="full danger">حذف پریست</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>فاصله و حاشیه</h2>
+      <div class="row">
+        <div>
+          <label>فاصله بین تکه‌ها (mm)</label>
+          <input type="number" id="spacingMm" value="10" min="0" step="any">
+        </div>
+      </div>
+      <label style="margin-bottom:6px; display:block;">حاشیه بوم (mm) — هر چهار طرف</label>
+      <div class="row">
+        <div>
+          <label>بالا</label>
+          <input type="number" id="marginTop" value="10" min="0" step="any">
+        </div>
+        <div>
+          <label>پایین</label>
+          <input type="number" id="marginBottom" value="10" min="0" step="any">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>راست</label>
+          <input type="number" id="marginRight" value="10" min="0" step="any">
+        </div>
+        <div>
+          <label>چپ</label>
+          <input type="number" id="marginLeft" value="10" min="0" step="any">
+        </div>
+      </div>
+      <div class="footnote">
+        اگر کاری وارد ناحیه حاشیه شود یا از بوم بیرون بزند، آن قسمت <b style="color:var(--bad);">قرمز</b> هایلایت می‌شود.
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>فایل‌ها و تعداد</h2>
+      <div class="btn-row" style="margin-bottom:10px;">
+        <button id="addFilesBtn" class="full">+ افزودن تصویر</button>
+        <button id="clearFilesBtn" class="full danger">حذف همه</button>
+      </div>
+      <input type="file" id="fileInput" multiple accept="image/*,.tif,.tiff" style="display:none;">
+      <div class="filelist" id="fileList"></div>
+      <div class="footnote">
+        برای هر فایل، تعداد ثابت یا (در حالت رول) متراژ هدف را تعیین کنید. ابعاد واقعی هر فایل را هم می‌توانید به میلی‌متر اصلاح کنید.
+        <br>فرمت‌های ورودی: <b>TIFF</b> (انواع فشرده‌سازی و رنگ)، PNG، JPEG، BMP، WebP.
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>چیدمان</h2>
+      <div class="btn-row" style="margin-bottom:10px;">
+        <button id="autoPackBtn" class="full primary">چیدمان خودکار</button>
+        <button id="resetLayoutBtn" class="full">ریست</button>
+      </div>
+      <div class="footnote" id="rollSummary" style="display:none;">
+        متراژ کار: <b>—</b> &nbsp;|&nbsp; تعداد تکه‌ها: <b>—</b>
+      </div>
+      <div class="footnote">
+        روی هر تکه دابل‌کلیک کنید تا ۹۰ درجه بچرخد. هنگام درگ، فاصله تعیین‌شده بین تکه‌ها رعایت می‌شود و کمتر از آن نمی‌شود.
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>خروجی</h2>
+      <div class="row">
+        <div>
+          <label>فرمت خروجی</label>
+          <select id="exportFormat">
+            <option value="tiff">TIFF (بدون افت کیفیت)</option>
+            <option value="image/png">PNG</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/bmp">BMP</option>
+            <option value="pdf">PDF (یک صفحه)</option>
+          </select>
+        </div>
+        <div id="jpegQualityWrap" style="display:none;">
+          <label>کیفیت JPEG / PDF</label>
+          <input type="range" id="jpegQuality" min="0.5" max="1" step="0.05" value="0.95">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>رزولوشن خروجی (DPI)</label>
+          <input type="number" id="exportDpi" value="150" min="1" max="1200">
+        </div>
+      </div>
+      <button id="exportBtn" class="full primary">دانلود بوم نهایی</button>
+      <div class="progress-wrap" id="exportProgressWrap">
+        <div class="progress-bar" id="exportProgressBar"></div>
+      </div>
+      <div class="footnote">
+        خروجی به‌صورت <b>تکه‌ای (strip-based)</b> ساخته می‌شود تا برای بوم‌های بزرگ با کمبود حافظه مواجه نشوید.
+      </div>
+    </div>
+
+  </aside>
+
+  <main>
+    <div class="toolbar">
+      <button id="zoomOut">−</button>
+      <span class="hint" id="zoomLabel">۱۰۰٪</span>
+      <button id="zoomIn">+</button>
+      <button id="fitZoom">تناسب با صفحه</button>
+      <div class="spacer"></div>
+      <div class="hint">بوم: <span id="dimsLabel">600 × 400 mm</span></div>
+    </div>
+
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <div class="cm tl"><svg viewBox="0 0 18 18"><path d="M0 0 V6 M0 0 H6" stroke="#ff7a32" stroke-width="2" fill="none"/></svg></div>
+        <div class="cm tr"><svg viewBox="0 0 18 18"><path d="M0 0 V6 M0 0 H6" stroke="#ff7a32" stroke-width="2" fill="none"/></svg></div>
+        <div class="cm bl"><svg viewBox="0 0 18 18"><path d="M0 0 V6 M0 0 H6" stroke="#ff7a32" stroke-width="2" fill="none"/></svg></div>
+        <div class="cm br"><svg viewBox="0 0 18 18"><path d="M0 0 V6 M0 0 H6" stroke="#ff7a32" stroke-width="2" fill="none"/></svg></div>
+
+        <div class="empty-state" id="emptyState">
+          <div class="big">― بوم خالی است ―</div>
+          <div>تصاویر را اضافه کنید، تعداد را مشخص کنید و روی «چیدمان خودکار» بزنید</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">هشدار</h3>
+    <p id="modalText" style="font-size:13px; color:var(--text-dim);"></p>
+    <div class="choice-note" id="modalChoiceNote" style="display:none;"></div>
+    <div class="btn-row" id="modalChoices" style="display:none; margin-bottom:8px; flex-direction:column;">
+      <button id="modalChoiceA" class="full primary"></button>
+      <button id="modalChoiceB" class="full"></button>
+    </div>
+    <button id="modalOk" class="full primary">باشه</button>
+  </div>
+</div>
+
+<script>
+const TIFF_TAGS = {
+  IMAGE_WIDTH: 256,
+  IMAGE_LENGTH: 257,
+  BITS_PER_SAMPLE: 258,
+  COMPRESSION: 259,
+  PHOTOMETRIC: 262,
+  STRIP_OFFSETS: 273,
+  SAMPLES_PER_PIXEL: 277,
+  ROWS_PER_STRIP: 278,
+  STRIP_BYTE_COUNTS: 279,
+  PLANAR_CONFIG: 284,
+  PREDICTOR: 317,
+  COLOR_MAP: 320,
+  TILE_WIDTH: 322,
+  TILE_LENGTH: 323,
+  TILE_OFFSETS: 324,
+  TILE_BYTE_COUNTS: 325,
+  EXTRA_SAMPLES: 338,
+  SAMPLE_FORMAT: 339,
+};
+
+const TYPE_SIZES = { 1:1, 2:1, 3:2, 4:4, 5:8, 6:1, 7:1, 8:2, 9:4, 10:8, 11:4, 12:8 };
+
+function readIFD(view, offset, little){
+  const numEntries = view.getUint16(offset, little);
+  const tags = {};
+  let p = offset + 2;
+
+  for(let i = 0; i < numEntries; i++){
+    const tag = view.getUint16(p, little);
+    const type = view.getUint16(p + 2, little);
+    const count = view.getUint32(p + 4, little);
+    const valueOffsetPos = p + 8;
+
+    const typeSize = TYPE_SIZES[type] || 1;
+    const totalBytes = typeSize * count;
+
+    let dataOffset;
+    if(totalBytes <= 4){
+      dataOffset = valueOffsetPos;
+    } else {
+      dataOffset = view.getUint32(valueOffsetPos, little);
+    }
+
+    const values = [];
+    for(let j = 0; j < count; j++){
+      const off = dataOffset + j * typeSize;
+      switch(type){
+        case 1: case 2: case 6: case 7: // BYTE/ASCII/SBYTE/UNDEFINED
+          values.push(view.getUint8(off));
+          break;
+        case 3: // SHORT
+          values.push(view.getUint16(off, little));
+          break;
+        case 8: // SSHORT
+          values.push(view.getInt16(off, little));
+          break;
+        case 4: // LONG
+          values.push(view.getUint32(off, little));
+          break;
+        case 9: // SLONG
+          values.push(view.getInt32(off, little));
+          break;
+        case 11: // FLOAT
+          values.push(view.getFloat32(off, little));
+          break;
+        case 12: // DOUBLE
+          values.push(view.getFloat64(off, little));
+          break;
+        case 5: // RATIONAL
+          values.push(view.getUint32(off, little) / view.getUint32(off + 4, little));
+          break;
+        case 10: // SRATIONAL
+          values.push(view.getInt32(off, little) / view.getInt32(off + 4, little));
+          break;
+        default:
+          values.push(0);
+      }
+    }
+
+    tags[tag] = { type, count, values };
+    p += 12;
+  }
+
+  const nextIFD = view.getUint32(p, little);
+  return { tags, nextIFD };
+}
+
+function tagVal(tags, tagId, def){
+  return tags[tagId] ? tags[tagId].values[0] : def;
+}
+function tagArr(tags, tagId, def){
+  return tags[tagId] ? tags[tagId].values : def;
+}
+
+/* ---------- PackBits decompression ---------- */
+function decodePackBits(input){
+  const out = [];
+  let i = 0;
+  while(i < input.length){
+    const n = input[i++];
+    if(n <= 127){
+      for(let k = 0; k <= n; k++) out.push(input[i++]);
+    } else if(n !== 128){
+      const reps = 257 - n;
+      const val = input[i++];
+      for(let k = 0; k < reps; k++) out.push(val);
+    }
+    // n === 128 is a no-op
+  }
+  return new Uint8Array(out);
+}
+
+/* ---------- TIFF-flavored LZW decompression ---------- */
+function decodeLZW(input, expectedLength){
+  const CLEAR = 256, EOI = 257;
+  const out = new Uint8Array(expectedLength);
+  let outPos = 0;
+
+  let dict = [];
+  function resetDict(){
+    dict = [];
+    for(let i = 0; i < 256; i++) dict.push([i]);
+    dict.push(null); // 256 CLEAR
+    dict.push(null); // 257 EOI
+  }
+  resetDict();
+
+  let codeLength = 9;
+  let bitBuffer = 0, bitCount = 0, bytePos = 0;
+
+  function readCode(){
+    while(bitCount < codeLength){
+      if(bytePos >= input.length) return EOI;
+      bitBuffer = (bitBuffer << 8) | input[bytePos++];
+      bitCount += 8;
+    }
+    const code = (bitBuffer >> (bitCount - codeLength)) & ((1 << codeLength) - 1);
+    bitCount -= codeLength;
+    return code;
+  }
+
+  let oldCode = null;
+
+  while(true){
+    const code = readCode();
+    if(code === EOI) break;
+    if(code === CLEAR){
+      resetDict();
+      codeLength = 9;
+      oldCode = null;
+      continue;
+    }
+
+    let entry;
+    if(code < dict.length && dict[code]){
+      entry = dict[code];
+    } else if(code === dict.length && oldCode !== null){
+      const prev = dict[oldCode];
+      entry = prev.concat([prev[0]]);
+    } else {
+      break; // invalid stream
+    }
+
+    for(let k = 0; k < entry.length; k++){
+      if(outPos < out.length) out[outPos++] = entry[k];
+    }
+
+    if(oldCode !== null){
+      const prev = dict[oldCode];
+      dict.push(prev.concat([entry[0]]));
+      const nextCode = dict.length;
+      if(nextCode === 511) codeLength = 10;
+      else if(nextCode === 1023) codeLength = 11;
+      else if(nextCode === 2047) codeLength = 12;
+    }
+    oldCode = code;
+
+    if(outPos >= out.length) break;
+  }
+
+  return out;
+}
+
+/* ---------- Predictor (horizontal differencing) ---------- */
+function applyPredictor(data, width, height, samplesPerPixel, bytesPerSample, little){
+  if(bytesPerSample === 1){
+    for(let y = 0; y < height; y++){
+      const rowStart = y * width * samplesPerPixel;
+      for(let x = 1; x < width; x++){
+        for(let s = 0; s < samplesPerPixel; s++){
+          const idx = rowStart + x * samplesPerPixel + s;
+          const prevIdx = idx - samplesPerPixel;
+          data[idx] = (data[idx] + data[prevIdx]) & 0xFF;
+        }
+      }
+    }
+  } else if(bytesPerSample === 2){
+    const view = new DataView(data.buffer, data.byteOffset, data.length);
+    for(let y = 0; y < height; y++){
+      const rowStart = y * width * samplesPerPixel;
+      for(let x = 1; x < width; x++){
+        for(let s = 0; s < samplesPerPixel; s++){
+          const idx = (rowStart + x * samplesPerPixel + s) * 2;
+          const prevIdx = idx - samplesPerPixel * 2;
+          const cur = view.getUint16(idx, little);
+          const prev = view.getUint16(prevIdx, little);
+          view.setUint16(idx, (cur + prev) & 0xFFFF, little);
+        }
+      }
+    }
+  }
+}
+
+/* ---------- Decompress a single strip/tile ---------- */
+async function decompressBlock(bytes, compression, predictor, width, height, samplesPerPixel, bitsPerSample, little){
+  const bytesPerSample = bitsPerSample <= 8 ? 1 : 2;
+  const expectedLength = width * height * samplesPerPixel * bytesPerSample;
+  let out;
+
+  switch(compression){
+    case 1: // none
+      out = bytes.length >= expectedLength ? bytes.slice(0, expectedLength) : bytes;
+      break;
+    case 5: // LZW
+      out = decodeLZW(bytes, expectedLength);
+      break;
+    case 32773: // PackBits
+      out = decodePackBits(bytes);
+      break;
+    case 8: case 32946: { // Adobe Deflate / Deflate (zlib-wrapped)
+      const ds = new DecompressionStream('deflate');
+      const stream = new Blob([bytes]).stream().pipeThrough(ds);
+      const buf = await new Response(stream).arrayBuffer();
+      out = new Uint8Array(buf);
+      break;
+    }
+    default:
+      throw new Error(`فرمت فشرده‌سازی TIFF پشتیبانی نمی‌شود (compression=${compression})`);
+  }
+
+  if(out.length < expectedLength){
+    const padded = new Uint8Array(expectedLength);
+    padded.set(out.subarray(0, Math.min(out.length, expectedLength)));
+    out = padded;
+  }
+
+  if(predictor === 2){
+    applyPredictor(out, width, height, samplesPerPixel, bytesPerSample, little);
+  }
+
+  return out;
+}
+
+/* ---------- Convert raw samples to RGBA ---------- */
+function samplesToRgba(raw, width, height, samplesPerPixel, bitsPerSample, photometric, colorMap, hasAlpha, little){
+  const rgba = new Uint8ClampedArray(width * height * 4);
+  const bytesPerSample = bitsPerSample <= 8 ? 1 : 2;
+
+  function getSample(pixelIdx, s){
+    const idx = (pixelIdx * samplesPerPixel + s) * bytesPerSample;
+    if(bytesPerSample === 1) return raw[idx];
+    // 16-bit -> scale down to 8-bit by taking the most-significant byte,
+    // respecting the file's byte order
+    return little ? raw[idx + 1] : raw[idx];
+  }
+
+  const total = width * height;
+
+  for(let i = 0; i < total; i++){
+    let r, g, b, a = 255;
+
+    if(photometric === 2){ // RGB
+      r = getSample(i, 0);
+      g = getSample(i, 1);
+      b = getSample(i, 2);
+      if(hasAlpha && samplesPerPixel >= 4) a = getSample(i, 3);
+    } else if(photometric === 0){ // WhiteIsZero
+      const v = 255 - getSample(i, 0);
+      r = g = b = v;
+      if(hasAlpha && samplesPerPixel >= 2) a = getSample(i, 1);
+    } else if(photometric === 1){ // BlackIsZero
+      const v = getSample(i, 0);
+      r = g = b = v;
+      if(hasAlpha && samplesPerPixel >= 2) a = getSample(i, 1);
+    } else if(photometric === 3){ // Palette
+      const idx = getSample(i, 0);
+      const mapLen = colorMap ? colorMap.length / 3 : 256;
+      r = colorMap ? (colorMap[idx] >> 8) : idx;
+      g = colorMap ? (colorMap[idx + mapLen] >> 8) : idx;
+      b = colorMap ? (colorMap[idx + mapLen * 2] >> 8) : idx;
+    } else if(photometric === 5){ // CMYK
+      const c = getSample(i, 0), m = getSample(i, 1), y = getSample(i, 2), k = getSample(i, 3);
+      r = 255 - Math.min(255, c + k);
+      g = 255 - Math.min(255, m + k);
+      b = 255 - Math.min(255, y + k);
+      if(hasAlpha && samplesPerPixel >= 5) a = getSample(i, 4);
+    } else {
+      // unsupported photometric: fall back to grayscale of first sample
+      const v = getSample(i, 0);
+      r = g = b = v;
+    }
+
+    const o = i * 4;
+    rgba[o] = r; rgba[o+1] = g; rgba[o+2] = b; rgba[o+3] = a;
+  }
+
+  return rgba;
+}
+
+/**
+ * Decode a TIFF ArrayBuffer into { width, height, rgba: Uint8ClampedArray }.
+ */
+async function decodeTIFF(arrayBuffer){
+  const view = new DataView(arrayBuffer);
+  const bytes = new Uint8Array(arrayBuffer);
+
+  const b0 = view.getUint8(0), b1 = view.getUint8(1);
+  let little;
+  if(b0 === 0x49 && b1 === 0x49) little = true;       // 'II'
+  else if(b0 === 0x4D && b1 === 0x4D) little = false; // 'MM'
+  else throw new Error('فایل TIFF معتبر نیست (byte order نامعتبر)');
+
+  const magic = view.getUint16(2, little);
+  if(magic !== 42) throw new Error('فایل TIFF معتبر نیست (magic number اشتباه)');
+
+  const firstIFDOffset = view.getUint32(4, little);
+  const { tags } = readIFD(view, firstIFDOffset, little);
+
+  const width = tagVal(tags, TIFF_TAGS.IMAGE_WIDTH);
+  const height = tagVal(tags, TIFF_TAGS.IMAGE_LENGTH);
+  const bitsPerSampleArr = tagArr(tags, TIFF_TAGS.BITS_PER_SAMPLE, [1]);
+  const bitsPerSample = bitsPerSampleArr[0];
+  const compression = tagVal(tags, TIFF_TAGS.COMPRESSION, 1);
+  const photometric = tagVal(tags, TIFF_TAGS.PHOTOMETRIC, 1);
+  const samplesPerPixel = tagVal(tags, TIFF_TAGS.SAMPLES_PER_PIXEL, 1);
+  const planarConfig = tagVal(tags, TIFF_TAGS.PLANAR_CONFIG, 1);
+  const predictor = tagVal(tags, TIFF_TAGS.PREDICTOR, 1);
+  const colorMap = tagArr(tags, TIFF_TAGS.COLOR_MAP, null);
+  const extraSamples = tagArr(tags, TIFF_TAGS.EXTRA_SAMPLES, []);
+  const hasAlpha = extraSamples.length > 0 || (photometric === 2 && samplesPerPixel === 4) || (photometric === 1 && samplesPerPixel === 2);
+
+  if(!width || !height) throw new Error('ابعاد تصویر در فایل TIFF یافت نشد');
+  if(planarConfig !== 1) throw new Error('TIFF با PlanarConfiguration=2 (planar) پشتیبانی نمی‌شود');
+
+  const bytesPerSample = bitsPerSample <= 8 ? 1 : 2;
+  const rawData = new Uint8Array(width * height * samplesPerPixel * bytesPerSample);
+
+  const isTiled = tags[TIFF_TAGS.TILE_WIDTH] !== undefined;
+
+  if(isTiled){
+    const tileWidth = tagVal(tags, TIFF_TAGS.TILE_WIDTH);
+    const tileHeight = tagVal(tags, TIFF_TAGS.TILE_LENGTH);
+    const tileOffsets = tagArr(tags, TIFF_TAGS.TILE_OFFSETS);
+    const tileByteCounts = tagArr(tags, TIFF_TAGS.TILE_BYTE_COUNTS);
+
+    const tilesAcross = Math.ceil(width / tileWidth);
+    const tilesDown = Math.ceil(height / tileHeight);
+
+    for(let ty = 0; ty < tilesDown; ty++){
+      for(let tx = 0; tx < tilesAcross; tx++){
+        const tileIdx = ty * tilesAcross + tx;
+        const offset = tileOffsets[tileIdx];
+        const byteCount = tileByteCounts[tileIdx];
+        const tileBytes = bytes.subarray(offset, offset + byteCount);
+
+        const decoded = await decompressBlock(tileBytes, compression, predictor, tileWidth, tileHeight, samplesPerPixel, bitsPerSample, little);
+
+        // copy tile into rawData, clipping to image bounds
+        const xStart = tx * tileWidth;
+        const yStart = ty * tileHeight;
+        const copyW = Math.min(tileWidth, width - xStart);
+        const copyH = Math.min(tileHeight, height - yStart);
+
+        for(let row = 0; row < copyH; row++){
+          const srcRowStart = row * tileWidth * samplesPerPixel * bytesPerSample;
+          const dstRowStart = ((yStart + row) * width + xStart) * samplesPerPixel * bytesPerSample;
+          const len = copyW * samplesPerPixel * bytesPerSample;
+          rawData.set(decoded.subarray(srcRowStart, srcRowStart + len), dstRowStart);
+        }
+      }
+    }
+  } else {
+    const stripOffsets = tagArr(tags, TIFF_TAGS.STRIP_OFFSETS);
+    const stripByteCounts = tagArr(tags, TIFF_TAGS.STRIP_BYTE_COUNTS);
+    const rowsPerStrip = tagVal(tags, TIFF_TAGS.ROWS_PER_STRIP, height);
+
+    let rowOffset = 0;
+    for(let s = 0; s < stripOffsets.length; s++){
+      const offset = stripOffsets[s];
+      const byteCount = stripByteCounts[s];
+      const stripBytes = bytes.subarray(offset, offset + byteCount);
+
+      const rowsInThisStrip = Math.min(rowsPerStrip, height - rowOffset);
+      const decoded = await decompressBlock(stripBytes, compression, predictor, width, rowsInThisStrip, samplesPerPixel, bitsPerSample, little);
+
+      const dstStart = rowOffset * width * samplesPerPixel * bytesPerSample;
+      rawData.set(decoded.subarray(0, decoded.length), dstStart);
+
+      rowOffset += rowsInThisStrip;
+    }
+  }
+
+  const rgba = samplesToRgba(rawData, width, height, samplesPerPixel, bitsPerSample, photometric, colorMap, hasAlpha, little);
+
+  return { width, height, rgba };
+}
+
+/* end of decodeTIFF */
+
+/* ============================================================
+   UNIT HELPERS (mm <-> px at a given DPI)
+   ============================================================ */
+function mmToPx(mm, dpi){ return mm / 25.4 * dpi; }
+function pxToMm(px, dpi){ return px * 25.4 / dpi; }
+
+/* ============================================================
+   STATE
+   All spatial measurements are stored in millimeters (mm).
+   px is only used internally at export/render time via DPI.
+   ============================================================ */
+const state = {
+  files: [],      // source files: {id, name, img, naturalWidthMm, naturalHeightMm, w, h (editable mm), quantity:{mode,count|lengthMm}}
+  instances: [],  // expanded placeable instances after packing: {id, sourceId, w, h, x, y, rotated, placed}
+
+  rollMode: false,
+  sheetW: 600, sheetH: 400,   // mm, sheet mode
+  rollW: 1000,                // mm, roll mode (length = canvasH, computed after packing)
+  canvasW: 600, canvasH: 400, // current working canvas size in mm (mirrors sheet/roll choice)
+
+  spacingMm: 10,
+  margin: { top: 10, right: 10, bottom: 10, left: 10 },
+  allowRotation: true,
+
+  zoomPxPerMm: 1, // screen zoom: how many CSS px per mm at 100%
+  selectedId: null,
+};
+
+const STORAGE_KEY = 'impositionPresetsMm_v1';
+const REF_DPI = 96; // assumed DPI of uploaded raster images for converting their native px size to mm by default
+
+/* ============================================================
+   DOM
+   ============================================================ */
+const el = {
+  presetSelect: document.getElementById('presetSelect'),
+  rollModeToggle: document.getElementById('rollModeToggle'),
+  sheetFields: document.getElementById('sheetFields'),
+  rollFields: document.getElementById('rollFields'),
+  sheetW: document.getElementById('sheetW'),
+  sheetH: document.getElementById('sheetH'),
+  rollW: document.getElementById('rollW'),
+  presetName: document.getElementById('presetName'),
+  allowRotation: document.getElementById('allowRotation'),
+  savePreset: document.getElementById('savePreset'),
+  deletePreset: document.getElementById('deletePreset'),
+
+  spacingMm: document.getElementById('spacingMm'),
+  marginTop: document.getElementById('marginTop'),
+  marginBottom: document.getElementById('marginBottom'),
+  marginRight: document.getElementById('marginRight'),
+  marginLeft: document.getElementById('marginLeft'),
+
+  addFilesBtn: document.getElementById('addFilesBtn'),
+  clearFilesBtn: document.getElementById('clearFilesBtn'),
+  fileInput: document.getElementById('fileInput'),
+  fileList: document.getElementById('fileList'),
+
+  autoPackBtn: document.getElementById('autoPackBtn'),
+  resetLayoutBtn: document.getElementById('resetLayoutBtn'),
+  rollSummary: document.getElementById('rollSummary'),
+
+  exportFormat: document.getElementById('exportFormat'),
+  jpegQuality: document.getElementById('jpegQuality'),
+  jpegQualityWrap: document.getElementById('jpegQualityWrap'),
+  exportDpi: document.getElementById('exportDpi'),
+  exportBtn: document.getElementById('exportBtn'),
+  exportProgressWrap: document.getElementById('exportProgressWrap'),
+  exportProgressBar: document.getElementById('exportProgressBar'),
+
+  zoomOut: document.getElementById('zoomOut'),
+  zoomIn: document.getElementById('zoomIn'),
+  fitZoom: document.getElementById('fitZoom'),
+  zoomLabel: document.getElementById('zoomLabel'),
+  dimsLabel: document.getElementById('dimsLabel'),
+
+  stage: document.getElementById('stage'),
+  stageWrap: document.getElementById('stageWrap'),
+  emptyState: document.getElementById('emptyState'),
+
+  statCount: document.getElementById('statCount'),
+  statFit: document.getElementById('statFit'),
+  statUnfit: document.getElementById('statUnfit'),
+  statUsage: document.getElementById('statUsage'),
+
+  modalBg: document.getElementById('modalBg'),
+  modalTitle: document.getElementById('modalTitle'),
+  modalText: document.getElementById('modalText'),
+  modalChoiceNote: document.getElementById('modalChoiceNote'),
+  modalOk: document.getElementById('modalOk'),
+  modalChoices: document.getElementById('modalChoices'),
+  modalChoiceA: document.getElementById('modalChoiceA'),
+  modalChoiceB: document.getElementById('modalChoiceB'),
+};
+
+function showModal(msg, title){
+  el.modalTitle.textContent = title || 'هشدار';
+  el.modalText.textContent = msg;
+  el.modalChoiceNote.style.display = 'none';
+  el.modalChoices.style.display = 'none';
+  el.modalOk.style.display = 'block';
+  el.modalBg.classList.add('show');
+}
+el.modalOk.onclick = () => el.modalBg.classList.remove('show');
+
+/**
+ * Show a confirm dialog with two custom-labeled choices.
+ * Returns a Promise<'a'|'b'>.
+ */
+function showChoice(msg, title, labelA, labelB, note){
+  return new Promise((resolve) => {
+    el.modalTitle.textContent = title || 'انتخاب';
+    el.modalText.textContent = msg;
+    el.modalOk.style.display = 'none';
+    el.modalChoices.style.display = 'flex';
+    el.modalChoiceA.textContent = labelA;
+    el.modalChoiceB.textContent = labelB;
+    if(note){
+      el.modalChoiceNote.textContent = note;
+      el.modalChoiceNote.style.display = 'block';
+    } else {
+      el.modalChoiceNote.style.display = 'none';
+    }
+    el.modalBg.classList.add('show');
+
+    const cleanup = (val) => {
+      el.modalBg.classList.remove('show');
+      el.modalChoiceA.onclick = null;
+      el.modalChoiceB.onclick = null;
+      resolve(val);
+    };
+    el.modalChoiceA.onclick = () => cleanup('a');
+    el.modalChoiceB.onclick = () => cleanup('b');
+  });
+}
+
+/* ============================================================
+   PRESETS (mm-based)
+   ============================================================ */
+function loadPresets(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e){ return []; }
+}
+function savePresets(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+
+function defaultPresets(){
+  return [
+    { name: 'پیش‌فرض ۶۰۰×۴۰۰mm', wMm: 600, hMm: 400, spacingMm: 10, margin: {top:10,right:10,bottom:10,left:10}, rotation: true, roll: false },
+    { name: 'شیت A1', wMm: 594, hMm: 841, spacingMm: 5, margin: {top:5,right:5,bottom:5,left:5}, rotation: true, roll: false },
+    { name: 'شیت A0', wMm: 841, hMm: 1189, spacingMm: 5, margin: {top:5,right:5,bottom:5,left:5}, rotation: true, roll: false },
+    { name: 'رول ۱۰۰۰mm', wMm: 1000, hMm: null, spacingMm: 10, margin: {top:10,right:10,bottom:10,left:10}, rotation: true, roll: true },
+  ];
+}
+
+function refreshPresetSelect(){
+  let presets = loadPresets();
+  if(presets.length === 0){
+    presets = defaultPresets();
+    savePresets(presets);
+  }
+  el.presetSelect.innerHTML = '';
+  presets.forEach((p, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    const dims = p.roll ? `رول، عرض ${p.wMm}mm` : `${p.wMm}×${p.hMm}mm`;
+    opt.textContent = `${p.name}  (${dims})`;
+    el.presetSelect.appendChild(opt);
+  });
+}
+
+function applyPreset(p){
+  el.presetName.value = p.name;
+  el.allowRotation.checked = !!p.rotation;
+  el.spacingMm.value = p.spacingMm;
+  const m = p.margin || {top:10,right:10,bottom:10,left:10};
+  el.marginTop.value = m.top;
+  el.marginBottom.value = m.bottom;
+  el.marginRight.value = m.right;
+  el.marginLeft.value = m.left;
+
+  if(p.roll){
+    el.rollModeToggle.checked = true;
+    el.sheetFields.style.display = 'none';
+    el.rollFields.style.display = 'block';
+    el.rollW.value = p.wMm;
+  } else {
+    el.rollModeToggle.checked = false;
+    el.sheetFields.style.display = 'block';
+    el.rollFields.style.display = 'none';
+    el.sheetW.value = p.wMm;
+    el.sheetH.value = p.hMm;
+  }
+  syncCanvasSettings();
+}
+
+el.presetSelect.onchange = () => {
+  const presets = loadPresets();
+  const p = presets[el.presetSelect.value];
+  if(p) applyPreset(p);
+};
+
+el.savePreset.onclick = () => {
+  const name = el.presetName.value.trim();
+  if(!name){ showModal('برای ذخیره پریست، یک عنوان وارد کنید.'); return; }
+  const presets = loadPresets();
+  const isRoll = el.rollModeToggle.checked;
+
+  const newPreset = {
+    name,
+    wMm: isRoll ? (parseFloat(el.rollW.value) || 1000) : (parseFloat(el.sheetW.value) || 600),
+    hMm: isRoll ? null : (parseFloat(el.sheetH.value) || 400),
+    spacingMm: parseFloat(el.spacingMm.value) || 0,
+    margin: {
+      top: parseFloat(el.marginTop.value) || 0,
+      bottom: parseFloat(el.marginBottom.value) || 0,
+      right: parseFloat(el.marginRight.value) || 0,
+      left: parseFloat(el.marginLeft.value) || 0,
+    },
+    rotation: el.allowRotation.checked,
+    roll: isRoll,
+  };
+
+  const existingIdx = presets.findIndex(p => p.name === name);
+  if(existingIdx >= 0) presets[existingIdx] = newPreset;
+  else presets.push(newPreset);
+  savePresets(presets);
+  refreshPresetSelect();
+  el.presetSelect.value = existingIdx >= 0 ? existingIdx : presets.length - 1;
+};
+
+el.deletePreset.onclick = () => {
+  const presets = loadPresets();
+  const idx = parseInt(el.presetSelect.value);
+  if(isNaN(idx) || !presets[idx]) return;
+  presets.splice(idx, 1);
+  savePresets(presets);
+  refreshPresetSelect();
+};
+
+/* ============================================================
+   CANVAS SETTINGS
+   ============================================================ */
+function syncCanvasSettings(){
+  state.allowRotation = el.allowRotation.checked;
+  state.spacingMm = Math.max(0, parseFloat(el.spacingMm.value) || 0);
+  state.margin = {
+    top: Math.max(0, parseFloat(el.marginTop.value) || 0),
+    bottom: Math.max(0, parseFloat(el.marginBottom.value) || 0),
+    right: Math.max(0, parseFloat(el.marginRight.value) || 0),
+    left: Math.max(0, parseFloat(el.marginLeft.value) || 0),
+  };
+  state.rollMode = el.rollModeToggle.checked;
+
+  if(state.rollMode){
+    state.rollW = Math.max(1, parseFloat(el.rollW.value) || 1000);
+    state.canvasW = state.rollW;
+    if(!state.canvasH || state.canvasH < 1) state.canvasH = state.rollW;
+  } else {
+    state.sheetW = Math.max(1, parseFloat(el.sheetW.value) || 600);
+    state.sheetH = Math.max(1, parseFloat(el.sheetH.value) || 400);
+    state.canvasW = state.sheetW;
+    state.canvasH = state.sheetH;
+  }
+
+  el.dimsLabel.textContent = `${fmtMm(state.canvasW)} × ${fmtMm(state.canvasH)} mm`;
+  render();
+}
+
+function fmtMm(v){
+  return (Math.round(v * 100) / 100).toLocaleString('fa-IR');
+}
+
+[el.sheetW, el.sheetH, el.rollW, el.spacingMm, el.allowRotation,
+ el.marginTop, el.marginBottom, el.marginRight, el.marginLeft].forEach(input => {
+  input.addEventListener('change', syncCanvasSettings);
+});
+
+el.rollModeToggle.addEventListener('change', () => {
+  const isRoll = el.rollModeToggle.checked;
+  el.sheetFields.style.display = isRoll ? 'none' : 'block';
+  el.rollFields.style.display = isRoll ? 'block' : 'none';
+  syncCanvasSettings();
+});
+
+function updateRollSummary(lengthMm, placedCount){
+  if(!state.rollMode){
+    el.rollSummary.style.display = 'none';
+    return;
+  }
+  el.rollSummary.style.display = 'block';
+  el.rollSummary.innerHTML =
+    `متراژ کار: <b>${fmtMm(lengthMm)} mm</b> (${fmtMm(lengthMm/1000)} m) &nbsp;|&nbsp; تعداد تکه‌ها: <b>${placedCount.toLocaleString('fa-IR')}</b>`;
+}
+
+/* ============================================================
+   FILE HANDLING (mm-native; px only used transiently for decoding)
+   ============================================================ */
+el.addFilesBtn.onclick = () => el.fileInput.click();
+el.fileInput.onchange = (e) => handleFiles(e.target.files);
+
+el.stage.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  el.stage.parentElement.classList.add('drag');
+});
+el.stage.addEventListener('dragleave', () => el.stage.parentElement.classList.remove('drag'));
+el.stage.addEventListener('drop', (e) => {
+  e.preventDefault();
+  el.stage.parentElement.classList.remove('drag');
+  if(e.dataTransfer.files && e.dataTransfer.files.length){
+    handleFiles(e.dataTransfer.files);
+  }
+});
+
+function handleFiles(fileList){
+  const files = Array.from(fileList).filter(f => f.type.startsWith('image/') || /\.(tif|tiff)$/i.test(f.name));
+  if(files.length === 0) return;
+
+  let pending = files.length;
+  const errors = [];
+
+  function finishOne(){
+    pending--;
+    if(pending === 0){
+      renderFileList();
+      render();
+      if(errors.length) showModal(errors.join('\n'), 'خطا در بارگذاری برخی فایل‌ها');
+    }
+  }
+
+  function addFile(img, dataUrl, widthPx, heightPx, name){
+    // default native size assumed at REF_DPI; user can correct mm dimensions afterward
+    const naturalWidthMm = pxToMm(widthPx, REF_DPI);
+    const naturalHeightMm = pxToMm(heightPx, REF_DPI);
+    state.files.push({
+      id: 'file_' + Math.random().toString(36).slice(2) + Date.now(),
+      name,
+      img,
+      dataUrl,
+      naturalWidthMm,
+      naturalHeightMm,
+      w: naturalWidthMm,
+      h: naturalHeightMm,
+      quantity: { mode: 'fixed', count: 1, lengthMm: 1000 },
+    });
+  }
+
+  files.forEach(file => {
+    const isTiff = /\.(tif|tiff)$/i.test(file.name);
+
+    if(isTiff){
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const { width, height, rgba } = await decodeTIFF(ev.target.result);
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          const imageData = new ImageData(rgba, width, height);
+          ctx.putImageData(imageData, 0, 0);
+          const dataUrl = canvas.toDataURL('image/png');
+          addFile(canvas, dataUrl, width, height, file.name);
+        } catch(err){
+          errors.push(`"${file.name}": ${err.message}`);
+        } finally {
+          finishOne();
+        }
+      };
+      reader.onerror = () => { errors.push(`"${file.name}": خواندن فایل ممکن نشد.`); finishOne(); };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        const img = new Image();
+        img.onload = () => { addFile(img, dataUrl, img.width, img.height, file.name); finishOne(); };
+        img.onerror = () => { errors.push(`"${file.name}": فرمت تصویر قابل پیش‌نمایش نیست.`); finishOne(); };
+        img.src = dataUrl;
+      };
+      reader.onerror = () => { errors.push(`"${file.name}": خواندن فایل ممکن نشد.`); finishOne(); };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+el.clearFilesBtn.onclick = () => {
+  state.files = [];
+  state.instances = [];
+  state.selectedId = null;
+  renderFileList();
+  render();
+};
+
+/* ============================================================
+   FILE LIST UI (quantity + dimension editing)
+   ============================================================ */
+function renderFileList(){
+  el.fileList.innerHTML = '';
+  el.statCount.textContent = state.files.length;
+
+  state.files.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'fitem';
+
+    const qtyModeOptions = state.rollMode
+      ? `<option value="fixed" ${f.quantity.mode==='fixed'?'selected':''}>تعداد ثابت</option>
+         <option value="fillLength" ${f.quantity.mode==='fillLength'?'selected':''}>متراژ هدف</option>`
+      : `<option value="fixed" selected>تعداد ثابت</option>`;
+
+    const qtyValueField = f.quantity.mode === 'fillLength'
+      ? `<input type="number" class="qty-value" min="1" step="any" value="${f.quantity.lengthMm}">`
+      : `<input type="number" class="qty-value" min="1" step="1" value="${f.quantity.count}">`;
+
+    const qtyUnitLabel = f.quantity.mode === 'fillLength' ? 'mm' : 'عدد';
+
+    div.innerHTML = `
+      <div class="fitem-top">
+        <span class="nm" title="${f.name}">${f.name}</span>
+        <span class="dims">${fmtMm(f.w)}×${fmtMm(f.h)}mm</span>
+        <span class="del" data-id="${f.id}">✕</span>
+      </div>
+      <div class="fitem-qty">
+        <select class="qty-mode">${qtyModeOptions}</select>
+        ${qtyValueField}
+        <span class="unit-label">${qtyUnitLabel}</span>
+      </div>
+      <div class="fitem-dims-edit">
+        <input type="number" class="dim-w" min="0.1" step="any" value="${roundMm(f.w)}">
+        <span class="unit-label">×</span>
+        <input type="number" class="dim-h" min="0.1" step="any" value="${roundMm(f.h)}">
+        <span class="unit-label">mm</span>
+      </div>
+    `;
+    el.fileList.appendChild(div);
+
+    div.querySelector('.del').onclick = () => {
+      state.files = state.files.filter(x => x.id !== f.id);
+      state.instances = state.instances.filter(x => x.sourceId !== f.id);
+      renderFileList();
+      render();
+    };
+
+    const modeSelect = div.querySelector('.qty-mode');
+    const qtyValueInput = div.querySelector('.qty-value');
+    modeSelect.onchange = () => {
+      f.quantity.mode = modeSelect.value;
+      if(f.quantity.mode === 'fixed' && !f.quantity.count) f.quantity.count = 1;
+      if(f.quantity.mode === 'fillLength' && !f.quantity.lengthMm) f.quantity.lengthMm = 1000;
+      renderFileList();
+    };
+    qtyValueInput.onchange = () => {
+      const v = parseFloat(qtyValueInput.value) || 1;
+      if(f.quantity.mode === 'fixed') f.quantity.count = Math.max(1, Math.round(v));
+      else f.quantity.lengthMm = Math.max(1, v);
+    };
+
+    const dimW = div.querySelector('.dim-w');
+    const dimH = div.querySelector('.dim-h');
+    dimW.onchange = () => { f.w = Math.max(0.1, parseFloat(dimW.value) || f.w); renderFileList(); };
+    dimH.onchange = () => { f.h = Math.max(0.1, parseFloat(dimH.value) || f.h); renderFileList(); };
+  });
+}
+
+function roundMm(v){ return Math.round(v * 100) / 100; }
+
+/* ============================================================
+   BIN PACKING (mm-based, MaxRects-style guillotine split)
+   ============================================================ */
+function runPacker(items, binW, binH, spacing, allowRot){
+  let freeRects = [{ x: 0, y: 0, w: binW, h: binH }];
+  const placements = [];
+
+  for(const item of items){
+    let bestRect = null, bestIdx = -1, bestRot = false, bestScore = Infinity;
+    const w0 = item.w + spacing;
+    const h0 = item.h + spacing;
+
+    for(let r = 0; r < freeRects.length; r++){
+      const f = freeRects[r];
+      if(w0 <= f.w + 1e-9 && h0 <= f.h + 1e-9){
+        const score = Math.min(f.w - w0, f.h - h0);
+        if(score < bestScore){ bestScore = score; bestRect = f; bestIdx = r; bestRot = false; }
+      }
+      if(allowRot && h0 <= f.w + 1e-9 && w0 <= f.h + 1e-9){
+        const score = Math.min(f.w - h0, f.h - w0);
+        if(score < bestScore){ bestScore = score; bestRect = f; bestIdx = r; bestRot = true; }
+      }
+    }
+
+    if(!bestRect){
+      placements.push({ ...item, placed: false });
+      continue;
+    }
+
+    const placeW = bestRot ? h0 : w0;
+    const placeH = bestRot ? w0 : h0;
+    const px = bestRect.x;
+    const py = bestRect.y;
+
+    placements.push({ ...item, placed: true, x: px, y: py, rotated: bestRot });
+
+    const used = bestRect;
+    freeRects.splice(bestIdx, 1);
+
+    if(used.w - placeW > 1e-9){
+      freeRects.push({ x: used.x + placeW, y: used.y, w: used.w - placeW, h: placeH });
+    }
+    if(used.h - placeH > 1e-9){
+      freeRects.push({ x: used.x, y: used.y + placeH, w: used.w, h: used.h - placeH });
+    }
+
+    freeRects = freeRects.filter((a, idx) => {
+      return !freeRects.some((b, idx2) => {
+        if(idx === idx2) return false;
+        return a.x >= b.x - 1e-9 && a.y >= b.y - 1e-9 &&
+               a.x + a.w <= b.x + b.w + 1e-9 && a.y + a.h <= b.y + b.h + 1e-9 &&
+               !(Math.abs(a.x-b.x)<1e-9 && Math.abs(a.y-b.y)<1e-9 && Math.abs(a.w-b.w)<1e-9 && Math.abs(a.h-b.h)<1e-9);
+      });
+    });
+  }
+
+  return placements;
+}
+
+/**
+ * Build the pool of instances to pack, based on each file's quantity spec.
+ * 'fixed': exactly `count` instances.
+ * 'fillLength' (roll only): generous upper-bound count, trimmed after packing.
+ */
+function buildInstancePool(files, packWidthMm){
+  const items = [];
+  files.forEach(f => {
+    if(f.quantity.mode === 'fixed'){
+      for(let i = 0; i < f.quantity.count; i++){
+        items.push({ id: `${f.id}__${i}`, sourceId: f.id, w: f.w, h: f.h, name: f.name });
+      }
+    } else if(f.quantity.mode === 'fillLength'){
+      const minSide = Math.min(f.w, f.h);
+      const perRow = Math.max(1, Math.floor(packWidthMm / minSide));
+      const rowsNeeded = Math.ceil(f.quantity.lengthMm / minSide) + 2;
+      const upperBound = Math.min(perRow * rowsNeeded, 5000); // hard safety cap
+      for(let i = 0; i < upperBound; i++){
+        items.push({ id: `${f.id}__${i}`, sourceId: f.id, w: f.w, h: f.h, name: f.name, fillTargetMm: f.quantity.lengthMm });
+      }
+    }
+  });
+  return items;
+}
+
+/* ============================================================
+   PACK ORCHESTRATION
+   ============================================================ */
+async function packImages(){
+  syncCanvasSettings();
+  if(state.files.length === 0){
+    state.instances = [];
+    render();
+    return;
+  }
+
+  if(state.rollMode){
+    await packRollMode();
+  } else {
+    await packSheetMode();
+  }
+  render();
+}
+el.autoPackBtn.onclick = packImages;
+
+el.resetLayoutBtn.onclick = () => {
+  state.instances = [];
+  render();
+};
+
+/* ---------- Sheet mode: fixed canvas, per-file fixed counts ---------- */
+async function packSheetMode(){
+  const spacing = state.spacingMm;
+  const allowRot = state.allowRotation;
+  const printableW = state.canvasW - state.margin.left - state.margin.right;
+  const printableH = state.canvasH - state.margin.top - state.margin.bottom;
+
+  let pool = buildInstancePool(state.files, printableW)
+    .sort((a,b) => (b.w*b.h) - (a.w*a.h));
+
+  let placements = runPacker(pool, printableW, printableH, spacing, allowRot);
+  let placed = placements.filter(p => p.placed);
+  let unplaced = placements.filter(p => !p.placed);
+
+  if(unplaced.length > 0){
+    // group unplaced by source file to report clearly
+    const bySource = {};
+    unplaced.forEach(p => { bySource[p.sourceId] = (bySource[p.sourceId]||0) + 1; });
+    const names = state.files
+      .filter(f => bySource[f.id])
+      .map(f => `${f.name} (${bySource[f.id]} عدد جا نشد)`)
+      .join('، ');
+
+    const choice = await showChoice(
+      `با ابعاد فعلی بوم، تعدادی از تکه‌ها جا نمی‌شوند: ${names}. می‌خواهید فقط همان تعدادی که جا می‌شود چیده شود، یا بوم بزرگ‌تر در نظر بگیرید (لغو و اصلاح دستی ابعاد)؟`,
+      'محدودیت ظرفیت بوم',
+      'فقط تعدادی که جا می‌شود چیده شود',
+      'لغو — می‌خواهم ابعاد بوم را اصلاح کنم'
+    );
+    if(choice === 'b'){
+      state.instances = [];
+      return;
+    }
+    // choice 'a': proceed with what fits
+  }
+
+  // offset placements by margin (printable area starts at margin.left/top)
+  placed = placed.map(p => ({ ...p, x: p.x + state.margin.left, y: p.y + state.margin.top }));
+
+  state.instances = placed;
+  updateRollSummary(0, 0); // hidden in sheet mode
+}
+
+/* ---------- Roll mode: fixed width, open length, per-file fixed/fillLength ---------- */
+async function packRollMode(){
+  const spacing = state.spacingMm;
+  const allowRot = state.allowRotation;
+  const printableW = state.rollW - state.margin.left - state.margin.right;
+
+  const fixedFiles = state.files.filter(f => f.quantity.mode === 'fixed');
+  const fillFiles = state.files.filter(f => f.quantity.mode === 'fillLength');
+
+  let pool = buildInstancePool(state.files, printableW)
+    .sort((a,b) => (b.w*b.h) - (a.w*a.h));
+
+  // generous virtual length so the packer has room to lay everything out
+  const totalArea = pool.reduce((s,i) => s + (i.w+spacing)*(i.h+spacing), 0);
+  const maxSingle = pool.reduce((m,i) => Math.max(m, i.w+spacing, i.h+spacing), 0);
+  const virtualLen = Math.max(totalArea / Math.max(printableW,1), maxSingle) * 2 + 5000;
+
+  let placements = runPacker(pool, printableW, virtualLen, spacing, allowRot);
+
+  function footprintEndY(p){ return p.y + (p.rotated ? p.w+spacing : p.h+spacing); }
+
+  // ---- resolve fixed-count files that didn't fully fit ----
+  let placedMap = {};
+  placements.forEach(p => { placedMap[p.id] = p; });
+
+  const shortfallFixed = fixedFiles
+    .map(f => ({ f, wanted: f.quantity.count, gotPlaced: placements.filter(p => p.sourceId === f.id && p.placed).length }))
+    .filter(x => x.gotPlaced < x.wanted);
+
+  if(shortfallFixed.length > 0){
+    // A fixed quantity has no "extra" instances to add — there is no (wanted+1)th
+    // piece to place, so the only honest options are: stop at what fits, or cancel
+    // and let the user shorten the roll / increase max length / reduce the quantity.
+    const lines = shortfallFixed.map(x => `«${x.f.name}»: ${x.gotPlaced} از ${x.wanted} عدد جا شد`).join('\n');
+    const choice = await showChoice(
+      `تعداد درخواستی برخی فایل‌ها در رول جا نشد:\n${lines}\n\nمی‌خواهید با همین تعداد جاشده ادامه دهید، یا چیدمان لغو شود تا متراژ/تعداد را تغییر دهید؟`,
+      'ظرفیت رول کافی نیست',
+      'با همین تعداد ادامه بده',
+      'لغو (می‌خواهم تنظیمات را عوض کنم)',
+      'برای جا دادن همهٔ قطعات، سقف طول رول را افزایش دهید یا تعداد درخواستی را کم کنید.'
+    );
+    if(choice === 'b'){
+      state.instances = [];
+      render();
+      return;
+    }
+  }
+
+  // ---- resolve fillLength files ----
+  for(const f of fillFiles){
+    const placedForFile = placements.filter(p => p.sourceId === f.id && p.placed);
+    if(placedForFile.length === 0) continue;
+    const targetLen = f.quantity.lengthMm;
+    const maxEnd = Math.max(...placedForFile.map(footprintEndY));
+
+    if(maxEnd > targetLen + 1e-6){
+      const choice = await showChoice(
+        `برای فایل «${f.name}»، با متراژ هدف ${fmtMm(targetLen)}mm، ردیف آخر کامل نمی‌شود. می‌خواهید دقیقاً در همان متراژ قطع شود (تکه‌های اضافه حذف می‌شوند)، یا ادامه پیدا کند تا ردیف فعلی تکمیل شود؟`,
+        `محدودیت متراژ برای «${f.name}»`,
+        'دقیقاً قطع شود به همان متراژ',
+        'ادامه تا تکمیل ردیف فعلی',
+        'این تصمیم فقط برای همین فایل اعمال می‌شود.'
+      );
+
+      let cutoff;
+      if(choice === 'a'){
+        cutoff = targetLen;
+      } else {
+        const rowEnds = [...new Set(placedForFile.map(p => +footprintEndY(p).toFixed(6)))].sort((a,b)=>a-b);
+        cutoff = rowEnds.find(e => e >= targetLen) ?? rowEnds[rowEnds.length-1] ?? targetLen;
+      }
+
+      placedForFile.forEach(p => {
+        if(footprintEndY(p) > cutoff + 1e-6){
+          p.placed = false;
+        }
+      });
+    } else {
+      // didn't even reach target length (not enough instances were generated, or pool exhausted)
+      // this is fine -- it means all requested/generated instances fit comfortably within target
+    }
+  }
+
+  // collect final placed instances, offset by margins
+  let placed = placements
+    .filter(p => p.placed)
+    .map(p => ({ ...p, x: p.x + state.margin.left, y: p.y + state.margin.top }));
+
+  const finalLength = placed.length
+    ? Math.max(...placed.map(p => p.y + (p.rotated ? p.w : p.h))) + state.margin.bottom
+    : state.margin.top + state.margin.bottom;
+
+  state.canvasH = Math.max(1, finalLength);
+  el.dimsLabel.textContent = `${fmtMm(state.canvasW)} × ${fmtMm(state.canvasH)} mm`;
+
+  state.instances = placed;
+  updateRollSummary(state.canvasH, placed.length);
+}
+
+/* ============================================================
+   RENDER STAGE
+   ============================================================ */
+function render(){
+  const zoom = state.zoomPxPerMm;
+  el.stage.style.width = (state.canvasW * zoom) + 'px';
+  el.stage.style.height = (state.canvasH * zoom) + 'px';
+
+  el.stage.querySelectorAll('.tile, .margin-zone').forEach(t => t.remove());
+  el.emptyState.style.display = state.files.length === 0 ? 'flex' : 'none';
+
+  // margin zones (visual)
+  const m = state.margin;
+  const zones = [
+    { side: 'top',    x: 0, y: 0, w: state.canvasW, h: m.top },
+    { side: 'bottom', x: 0, y: state.canvasH - m.bottom, w: state.canvasW, h: m.bottom },
+    { side: 'left',   x: 0, y: 0, w: m.left, h: state.canvasH },
+    { side: 'right',  x: state.canvasW - m.right, y: 0, w: m.right, h: state.canvasW },
+  ];
+
+  function rectIntersectsMargin(tileRect, zone){
+    return !(tileRect.x >= zone.x + zone.w || tileRect.x + tileRect.w <= zone.x ||
+             tileRect.y >= zone.y + zone.h || tileRect.y + tileRect.h <= zone.y);
+  }
+
+  const placedRects = state.instances.filter(i => i.placed).map(i => ({
+    x: i.x, y: i.y,
+    w: i.rotated ? i.h : i.w,
+    h: i.rotated ? i.w : i.h,
+  }));
+
+  zones.forEach(z => {
+    const div = document.createElement('div');
+    div.className = 'margin-zone';
+    const violated = placedRects.some(r => rectIntersectsMargin(r, z));
+    if(violated) div.classList.add('violated');
+    div.style.left = (z.x * zoom) + 'px';
+    div.style.top = (z.y * zoom) + 'px';
+    div.style.width = (z.w * zoom) + 'px';
+    div.style.height = (z.h * zoom) + 'px';
+    el.stage.appendChild(div);
+  });
+
+  let usedArea = 0;
+  const placed = state.instances.filter(i => i.placed);
+
+  placed.forEach(item => {
+    const sourceFile = state.files.find(f => f.id === item.sourceId);
+    if(!sourceFile) return;
+
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    if(item.id === state.selectedId) tile.classList.add('selected');
+
+    const dispW = item.rotated ? item.h : item.w;
+    const dispH = item.rotated ? item.w : item.h;
+    usedArea += dispW * dispH;
+
+    // out-of-bounds / margin-violation check for this specific tile
+    const outOfCanvas = item.x < -1e-6 || item.y < -1e-6 ||
+      (item.x + dispW) > state.canvasW + 1e-6 || (item.y + dispH) > state.canvasH + 1e-6;
+    const inMargin = item.x < m.left - 1e-6 || item.y < m.top - 1e-6 ||
+      (item.x + dispW) > (state.canvasW - m.right) + 1e-6 ||
+      (item.y + dispH) > (state.canvasH - m.bottom) + 1e-6;
+    if(outOfCanvas || inMargin) tile.classList.add('out-of-bounds');
+
+    tile.style.left = (item.x * zoom) + 'px';
+    tile.style.top = (item.y * zoom) + 'px';
+
+    if(item.rotated){
+      tile.style.width = (item.w * zoom) + 'px';
+      tile.style.height = (item.h * zoom) + 'px';
+      tile.style.backgroundImage = `url(${sourceFile.dataUrl})`;
+      tile.style.backgroundSize = `${item.h*zoom}px ${item.w*zoom}px`;
+      tile.style.transform = `rotate(90deg) translate(0px, -${item.w*zoom}px)`;
+      tile.style.transformOrigin = 'top left';
+    } else {
+      tile.style.width = (dispW * zoom) + 'px';
+      tile.style.height = (dispH * zoom) + 'px';
+      tile.style.backgroundImage = `url(${sourceFile.dataUrl})`;
+      tile.style.backgroundSize = 'cover';
+      tile.style.transform = '';
+    }
+
+    const lbl = document.createElement('div');
+    lbl.className = 'lbl';
+    lbl.textContent = `${sourceFile.name} ${item.rotated ? '↻90°' : ''}`;
+    tile.appendChild(lbl);
+
+    const rotHandle = document.createElement('div');
+    rotHandle.className = 'rot-handle';
+    rotHandle.textContent = '↻';
+    rotHandle.title = 'چرخش ۹۰ درجه';
+    rotHandle.onclick = (e) => { e.stopPropagation(); rotateTile(item.id); };
+    tile.appendChild(rotHandle);
+
+    tile.dataset.id = item.id;
+    tile.addEventListener('mousedown', onTileMouseDown);
+    tile.addEventListener('dblclick', () => rotateTile(item.id));
+    tile.addEventListener('click', () => { state.selectedId = item.id; render(); });
+
+    el.stage.appendChild(tile);
+  });
+
+  const fitCount = placed.length;
+  const unfitCount = state.instances.length - fitCount;
+  el.statFit.textContent = fitCount;
+  el.statUnfit.textContent = unfitCount;
+  const totalArea = state.canvasW * state.canvasH;
+  const usage = totalArea > 0 ? (usedArea / totalArea * 100) : 0;
+  el.statUsage.textContent = usage.toFixed(1).replace('.', '٫') + '٪';
+}
+
+/* ============================================================
+   ROTATE
+   ============================================================ */
+function rotateTile(id){
+  const item = state.instances.find(i => i.id === id);
+  if(!item) return;
+  item.rotated = !item.rotated;
+  // reuse the same canvas-bounds + neighbor-spacing clamp used during drag,
+  // so a rotated tile can never end up violating spacing or leaving the canvas
+  const clamped = clampDragPosition(item, item.x, item.y);
+  item.x = clamped.x;
+  item.y = clamped.y;
+  render();
+}
+
+/* ============================================================
+   DRAG (spacing-aware clamping in mm)
+   ============================================================ */
+function getTileRect(item){
+  const w = item.rotated ? item.h : item.w;
+  const h = item.rotated ? item.w : item.h;
+  return { x: item.x, y: item.y, w, h };
+}
+
+function rectsViolateSpacing(a, b, spacing){
+  const EPS = 1e-6;
+  const aExp = { x: a.x - spacing, y: a.y - spacing, w: a.w + spacing*2, h: a.h + spacing*2 };
+  return !(b.x >= aExp.x + aExp.w - EPS || b.x + b.w <= aExp.x + EPS ||
+           b.y >= aExp.y + aExp.h - EPS || b.y + b.h <= aExp.y + EPS);
+}
+
+function clampDragPosition(movingItem, proposedX, proposedY){
+  const w = movingItem.rotated ? movingItem.h : movingItem.w;
+  const h = movingItem.rotated ? movingItem.w : movingItem.h;
+
+  const minX = 0, maxX = Math.max(0, state.canvasW - w);
+  const minY = 0, maxY = Math.max(0, state.canvasH - h);
+
+  let x = Math.max(minX, Math.min(proposedX, maxX));
+  let y = Math.max(minY, Math.min(proposedY, maxY));
+
+  const others = state.instances.filter(it => it.id !== movingItem.id && it.placed);
+  const spacing = state.spacingMm;
+
+  // iterate several passes to settle against multiple neighbors; clamp to
+  // canvas bounds INSIDE each push so a push never gets silently undone by
+  // a later bounds-clamp (which would leave spacing violated)
+  for(let pass = 0; pass < 6; pass++){
+    let moved = false;
+    for(const other of others){
+      const r2 = getTileRect(other);
+      const r1 = { x, y, w, h };
+      if(rectsViolateSpacing(r1, r2, spacing)){
+        const pushRight = (r2.x + r2.w + spacing) - r1.x;
+        const pushLeft = (r1.x + r1.w + spacing) - r2.x;
+        const pushDown = (r2.y + r2.h + spacing) - r1.y;
+        const pushUp = (r1.y + r1.h + spacing) - r2.y;
+
+        const candidates = [
+          { delta: pushRight, newX: Math.min(maxX, x + pushRight), newY: y },
+          { delta: pushLeft,  newX: Math.max(minX, x - pushLeft),  newY: y },
+          { delta: pushDown,  newX: x, newY: Math.min(maxY, y + pushDown) },
+          { delta: pushUp,    newX: x, newY: Math.max(minY, y - pushUp) },
+        ].filter(c => c.delta > 0);
+
+        // prefer the smallest move that actually still satisfies bounds AND
+        // clears this neighbor's spacing requirement after clamping
+        candidates.sort((a,b) => a.delta - b.delta);
+        let applied = false;
+        for(const c of candidates){
+          const r1Try = { x: c.newX, y: c.newY, w, h };
+          if(rectsViolateSpacing(r1Try, r2, spacing)) continue; // still violates after this candidate -> try next
+          x = c.newX; y = c.newY; moved = true; applied = true;
+          break;
+        }
+        if(!applied && candidates.length){
+          // no candidate fully clears it (tight space); take the largest
+          // available move anyway so we get as close to valid as bounds allow
+          const best = candidates[candidates.length - 1];
+          x = best.newX; y = best.newY; moved = true;
+        }
+      }
+    }
+    if(!moved) break;
+  }
+
+  return { x, y };
+}
+
+let dragState = null;
+
+function onTileMouseDown(e){
+  if(e.button !== 0) return;
+  const id = e.currentTarget.dataset.id;
+  const item = state.instances.find(i => i.id === id);
+  if(!item) return;
+  state.selectedId = id;
+
+  dragState = {
+    id,
+    startX: e.clientX,
+    startY: e.clientY,
+    origX: item.x,
+    origY: item.y,
+  };
+  e.currentTarget.classList.add('dragging');
+  e.preventDefault();
+}
+
+window.addEventListener('mousemove', (e) => {
+  if(!dragState) return;
+  const item = state.instances.find(i => i.id === dragState.id);
+  if(!item) return;
+
+  const zoom = state.zoomPxPerMm;
+  const dxMm = (e.clientX - dragState.startX) / zoom;
+  const dyMm = (e.clientY - dragState.startY) / zoom;
+
+  const proposedX = dragState.origX + dxMm;
+  const proposedY = dragState.origY + dyMm;
+
+  const clamped = clampDragPosition(item, proposedX, proposedY);
+  item.x = clamped.x;
+  item.y = clamped.y;
+  item.placed = true;
+  render();
+});
+
+window.addEventListener('mouseup', () => {
+  if(dragState){
+    const tile = el.stage.querySelector(`.tile[data-id="${dragState.id}"]`);
+    if(tile) tile.classList.remove('dragging');
+    dragState = null;
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if(e.key.toLowerCase() === 'r' && state.selectedId){
+    rotateTile(state.selectedId);
+  }
+});
+
+/* ============================================================
+   ZOOM
+   ============================================================ */
+function setZoom(z){
+  state.zoomPxPerMm = Math.max(0.05, Math.min(15, z));
+  el.zoomLabel.textContent = Math.round((state.zoomPxPerMm / state.zoomPxPerMm) * 0) ; // placeholder, replaced below
+  render();
+  updateZoomLabel();
+}
+function updateZoomLabel(){
+  // zoom relative to a "100%" baseline of 1 screen px per mm * (96/25.4) to roughly match real-world size on screen
+  const baseline = 96 / 25.4; // px per mm at "actual size" on a 96dpi screen
+  const pct = Math.round((state.zoomPxPerMm / baseline) * 100);
+  el.zoomLabel.textContent = pct.toLocaleString('fa-IR') + '٪';
+}
+el.zoomIn.onclick = () => setZoom(state.zoomPxPerMm * 1.25);
+el.zoomOut.onclick = () => setZoom(state.zoomPxPerMm / 1.25);
+el.fitZoom.onclick = () => {
+  const wrapRect = el.stageWrap.getBoundingClientRect();
+  const availW = wrapRect.width - 40;
+  const availH = wrapRect.height - 40;
+  const zw = availW / state.canvasW;
+  const zh = availH / state.canvasH;
+  setZoom(Math.min(zw, zh));
+};
+
+/* ============================================================
+   EXPORT (chunked / strip-based to avoid out-of-memory errors)
+   ============================================================ */
+const MAX_STRIP_BYTES = 24 * 1024 * 1024; // ~24MB per strip working buffer
+const MAX_CANVAS_DIMENSION_PX = 30000;    // browsers choke well before this on either axis
+const MAX_CANVAS_AREA_PX = 230 * 1000 * 1000; // safety margin under common browser limits (~268M)
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function setExportProgress(pct){
+  el.exportProgressWrap.classList.toggle('show', pct > 0 && pct < 100);
+  el.exportProgressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+}
+
+/**
+ * Render one horizontal strip [stripYpx, stripYpx+stripHpx) of the full output
+ * onto a small canvas sized exactly stripWpx x stripHpx, drawing only the
+ * tiles that intersect this band. Returns the strip's 2D context's canvas.
+ */
+function renderStripCanvas(placedPx, stripYpx, stripHpx, canvasWpx, dpi){
+  const stripCanvas = document.createElement('canvas');
+  stripCanvas.width = canvasWpx;
+  stripCanvas.height = stripHpx;
+  const ctx = stripCanvas.getContext('2d', { willReadFrequently: true });
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvasWpx, stripHpx);
+
+  const stripBottom = stripYpx + stripHpx;
+
+  placedPx.forEach(item => {
+    const dispH = item.rotated ? item.wPx : item.hPx;
+    const itemTop = item.yPx, itemBottom = item.yPx + dispH;
+    if(itemTop >= stripBottom || itemBottom <= stripYpx) return; // no intersection
+
+    const localY = item.yPx - stripYpx;
+    ctx.save();
+    if(item.rotated){
+      ctx.translate(item.xPx + item.hPx, localY);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(item.img, 0, 0, item.wPx, item.hPx);
+    } else {
+      ctx.drawImage(item.img, item.xPx, localY, item.wPx, item.hPx);
+    }
+    ctx.restore();
+  });
+
+  return stripCanvas;
+}
+
+function mmInstancesToPx(instances, files, dpi){
+  return instances.filter(i => i.placed).map(item => {
+    const sourceFile = files.find(f => f.id === item.sourceId);
+    return {
+      img: sourceFile.img,
+      xPx: Math.round(mmToPx(item.x, dpi)),
+      yPx: Math.round(mmToPx(item.y, dpi)),
+      wPx: Math.round(mmToPx(item.w, dpi)),
+      hPx: Math.round(mmToPx(item.h, dpi)),
+      rotated: item.rotated,
+    };
+  });
+}
+
+/* ---------- Chunked uncompressed TIFF writer (strip-native format) ---------- */
+async function exportTiffChunked(canvasWpx, canvasHpx, placedPx, dpi, onProgress){
+  const samplesPerPixel = 3; // RGB, opaque white background
+  const rowsPerStrip = Math.max(1, Math.floor(MAX_STRIP_BYTES / (canvasWpx * samplesPerPixel)));
+  const numStrips = Math.ceil(canvasHpx / rowsPerStrip);
+
+  const stripHeights = [];
+  let remaining = canvasHpx;
+  for(let i = 0; i < numStrips; i++){
+    const h = Math.min(rowsPerStrip, remaining);
+    stripHeights.push(h);
+    remaining -= h;
+  }
+
+  const stripByteCounts = stripHeights.map(h => h * canvasWpx * samplesPerPixel);
+  const totalDataBytes = stripByteCounts.reduce((a,b) => a+b, 0);
+
+  const headerSize = 8;
+  const dataStart = headerSize;
+  const stripOffsetsArrOffset = dataStart + totalDataBytes;
+  const stripByteCountsArrOffset = stripOffsetsArrOffset + numStrips * 4;
+  const bpsArrOffset = stripByteCountsArrOffset + numStrips * 4;
+  const bpsArrSize = samplesPerPixel * 2;
+  const ifdEntryCount = 9;
+  const ifdOffset = bpsArrOffset + bpsArrSize + (bpsArrSize % 2);
+  const ifdSize = 2 + ifdEntryCount * 12 + 4;
+  const totalSize = ifdOffset + ifdSize;
+
+  // Guard against absurd output sizes that would also fail as a Blob/file
+  if(totalSize > 4 * 1024 * 1024 * 1024){
+    throw new Error('حجم فایل خروجی بیش از ۴ گیگابایت می‌شود؛ DPI یا ابعاد بوم را کاهش دهید.');
+  }
+
+  const buf = new ArrayBuffer(totalSize);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+
+  view.setUint8(0, 0x49); view.setUint8(1, 0x49);
+  view.setUint16(2, 42, true);
+  view.setUint32(4, ifdOffset, true);
+
+  const stripOffsets = [];
+  let cursor = dataStart;
+  for(const bc of stripByteCounts){ stripOffsets.push(cursor); cursor += bc; }
+
+  // render + write each strip incrementally
+  let rowCursor = 0;
+  for(let s = 0; s < numStrips; s++){
+    const h = stripHeights[s];
+    const stripCanvas = renderStripCanvas(placedPx, rowCursor, h, canvasWpx, dpi);
+    const ctx = stripCanvas.getContext('2d', { willReadFrequently: true });
+    const imgData = ctx.getImageData(0, 0, canvasWpx, h); // small strip only -> bounded memory
+
+    const dst = stripOffsets[s];
+    const rgba = imgData.data;
+    const rowBytes = canvasWpx * samplesPerPixel;
+    for(let row = 0; row < h; row++){
+      const srcRowStart = row * canvasWpx * 4;
+      const dstRowStart = dst + row * rowBytes;
+      for(let x = 0; x < canvasWpx; x++){
+        const srcIdx = srcRowStart + x * 4;
+        const dstIdx = dstRowStart + x * samplesPerPixel;
+        bytes[dstIdx] = rgba[srcIdx];
+        bytes[dstIdx+1] = rgba[srcIdx+1];
+        bytes[dstIdx+2] = rgba[srcIdx+2];
+      }
+    }
+
+    rowCursor += h;
+    if(onProgress) onProgress(Math.round((s+1) / numStrips * 90)); // reserve last 10% for finalize
+    // yield to the browser so the UI/progress bar can update
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  stripOffsets.forEach((off, i) => view.setUint32(stripOffsetsArrOffset + i*4, off, true));
+  stripByteCounts.forEach((bc, i) => view.setUint32(stripByteCountsArrOffset + i*4, bc, true));
+  for(let i = 0; i < samplesPerPixel; i++) view.setUint16(bpsArrOffset + i*2, 8, true);
+
+  let p = ifdOffset;
+  view.setUint16(p, ifdEntryCount, true); p += 2;
+  function writeEntry(tag, type, count, valueOrOffset){
+    view.setUint16(p, tag, true); p += 2;
+    view.setUint16(p, type, true); p += 2;
+    view.setUint32(p, count, true); p += 4;
+    view.setUint32(p, valueOrOffset, true); p += 4;
+  }
+  writeEntry(256, 4, 1, canvasWpx);
+  writeEntry(257, 4, 1, canvasHpx);
+  writeEntry(258, 3, samplesPerPixel, bpsArrOffset);
+  writeEntry(259, 3, 1, 1);
+  writeEntry(262, 3, 1, 2);
+  writeEntry(273, 4, numStrips, numStrips === 1 ? stripOffsets[0] : stripOffsetsArrOffset);
+  writeEntry(277, 3, 1, samplesPerPixel);
+  writeEntry(278, 4, 1, rowsPerStrip);
+  writeEntry(279, 4, numStrips, numStrips === 1 ? stripByteCounts[0] : stripByteCountsArrOffset);
+  view.setUint32(p, 0, true);
+
+  if(onProgress) onProgress(100);
+  return new Blob([buf], { type: 'image/tiff' });
+}
+
+
+/**
+ * Build a 24-bit uncompressed BMP from RGBA pixel data.
+ */
+function buildBmp(rgba, width, height){
+  const rowSize = Math.ceil((width * 3) / 4) * 4; // rows padded to 4-byte boundary
+  const pixelArraySize = rowSize * height;
+  const fileSize = 54 + pixelArraySize;
+
+  const buf = new ArrayBuffer(fileSize);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+
+  view.setUint8(0, 0x42); view.setUint8(1, 0x4D); // "BM"
+  view.setUint32(2, fileSize, true);
+  view.setUint32(10, 54, true);
+
+  view.setUint32(14, 40, true);
+  view.setInt32(18, width, true);
+  view.setInt32(22, height, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(30, 0, true);
+  view.setUint32(34, pixelArraySize, true);
+
+  for(let y = 0; y < height; y++){
+    const srcY = height - 1 - y;
+    for(let x = 0; x < width; x++){
+      const srcIdx = (srcY * width + x) * 4;
+      const dstIdx = 54 + y * rowSize + x * 3;
+      bytes[dstIdx]     = rgba[srcIdx + 2];
+      bytes[dstIdx + 1] = rgba[srcIdx + 1];
+      bytes[dstIdx + 2] = rgba[srcIdx];
+    }
+  }
+
+  return new Blob([buf], { type: 'image/bmp' });
+}
+
+function buildSinglePagePdf(jpegArrayBuffer, widthPx, heightPx){
+  const ptsPerPx = 72 / 96;
+  const pageW = widthPx * ptsPerPx;
+  const pageH = heightPx * ptsPerPx;
+
+  const enc = new TextEncoder();
+  const chunks = [];
+  const offsets = [];
+  let pos = 0;
+
+  function push(strOrBytes){
+    const bytes = (typeof strOrBytes === 'string') ? enc.encode(strOrBytes) : strOrBytes;
+    chunks.push(bytes);
+    pos += bytes.length;
+  }
+  function startObj(num){
+    offsets[num] = pos;
+    push(`${num} 0 obj\n`);
+  }
+
+  push('%PDF-1.4\n');
+
+  startObj(1);
+  push('<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+
+  startObj(2);
+  push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+
+  startObj(3);
+  push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(2)} ${pageH.toFixed(2)}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>\nendobj\n`);
+
+  const content = `q\n${pageW.toFixed(2)} 0 0 ${pageH.toFixed(2)} 0 0 cm\n/Im0 Do\nQ`;
+  startObj(4);
+  push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
+
+  startObj(5);
+  const jpegBytes = new Uint8Array(jpegArrayBuffer);
+  push(`<< /Type /XObject /Subtype /Image /Width ${widthPx} /Height ${heightPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`);
+  push(jpegBytes);
+  push('\nendstream\nendobj\n');
+
+  const xrefStart = pos;
+  let xref = `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
+  for(let i = 1; i < offsets.length; i++){
+    xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  }
+  push(xref);
+  push(`trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`);
+
+  return new Blob(chunks, { type: 'application/pdf' });
+}
+
+/**
+ * For non-TIFF formats we must hand the browser one fully-rasterized canvas
+ * (its own PNG/JPEG/BMP/PDF encoders need a single backing bitmap), so unlike
+ * TIFF we can't chunk our way around the canvas pixel-count ceiling. Instead
+ * we cap dimensions/area and tell the user clearly if the requested size+DPI
+ * combination is too large for these formats.
+ */
+function checkCanvasSizeForRasterFormats(canvasWpx, canvasHpx){
+  if(canvasWpx > MAX_CANVAS_DIMENSION_PX || canvasHpx > MAX_CANVAS_DIMENSION_PX || (canvasWpx * canvasHpx) > MAX_CANVAS_AREA_PX){
+    return false;
+  }
+  return true;
+}
+
+function buildFullRasterCanvas(canvasWpx, canvasHpx, placedPx){
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasWpx;
+  canvas.height = canvasHpx;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvasWpx, canvasHpx);
+
+  placedPx.forEach(item => {
+    ctx.save();
+    if(item.rotated){
+      ctx.translate(item.xPx + item.hPx, item.yPx);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(item.img, 0, 0, item.wPx, item.hPx);
+    } else {
+      ctx.drawImage(item.img, item.xPx, item.yPx, item.wPx, item.hPx);
+    }
+    ctx.restore();
+  });
+
+  return canvas;
+}
+
+el.exportFormat.addEventListener('change', () => {
+  const f = el.exportFormat.value;
+  el.jpegQualityWrap.style.display = (f === 'image/jpeg' || f === 'pdf') ? 'block' : 'none';
+});
+
+el.exportBtn.onclick = async () => {
+  const placed = state.instances.filter(i => i.placed);
+  if(placed.length === 0){
+    showModal('هیچ تصویری روی بوم چیده نشده است. ابتدا «چیدمان خودکار» را اجرا کنید یا تصاویر را به‌صورت دستی روی بوم بکشید.');
+    return;
+  }
+
+  const format = el.exportFormat.value;
+  const quality = parseFloat(el.jpegQuality.value);
+  const dpi = Math.max(1, parseInt(el.exportDpi.value, 10) || 150);
+
+  const canvasWpx = Math.round(mmToPx(state.canvasW, dpi));
+  const canvasHpx = Math.round(mmToPx(state.canvasH, dpi));
+  const placedPx = mmInstancesToPx(state.instances, state.files, dpi);
+
+  const baseName = `imposition_${Math.round(state.canvasW)}x${Math.round(state.canvasH)}mm_${dpi}dpi`;
+
+  if(format !== 'tiff' && !checkCanvasSizeForRasterFormats(canvasWpx, canvasHpx)){
+    showModal('ابعاد بوم در این DPI برای فرمت‌های غیر TIFF بیش از حد بزرگ است (محدودیت حافظهٔ مرورگر). برای این کار، DPI را کاهش دهید یا فرمت TIFF را انتخاب کنید — TIFF به‌صورت تکه‌ای ساخته می‌شود و این محدودیت را ندارد.', 'ابعاد خروجی بیش از حد است');
+    return;
+  }
+
+  el.exportBtn.disabled = true;
+  el.exportBtn.textContent = 'در حال آماده‌سازی...';
+  setExportProgress(1);
+
+  try {
+    if(format === 'tiff'){
+      const blob = await exportTiffChunked(canvasWpx, canvasHpx, placedPx, dpi, setExportProgress);
+      downloadBlob(blob, `${baseName}.tiff`);
+    } else if(format === 'image/bmp'){
+      const canvas = buildFullRasterCanvas(canvasWpx, canvasHpx, placedPx);
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const blob = buildBmp(imgData.data, canvas.width, canvas.height);
+      downloadBlob(blob, `${baseName}.bmp`);
+    } else if(format === 'image/png' || format === 'image/jpeg'){
+      const canvas = buildFullRasterCanvas(canvasWpx, canvasHpx, placedPx);
+      const ext = format === 'image/png' ? 'png' : 'jpg';
+      await new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          downloadBlob(blob, `${baseName}.${ext}`);
+          resolve();
+        }, format, quality);
+      });
+    } else if(format === 'pdf'){
+      const canvas = buildFullRasterCanvas(canvasWpx, canvasHpx, placedPx);
+      const jpegBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      const arrayBuf = await jpegBlob.arrayBuffer();
+      const pdfBlob = buildSinglePagePdf(arrayBuf, canvas.width, canvas.height);
+      downloadBlob(pdfBlob, `${baseName}.pdf`);
+    }
+    setExportProgress(100);
+  } catch(err){
+    showModal('خطا در ساخت فایل خروجی: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      el.exportBtn.disabled = false;
+      el.exportBtn.textContent = 'دانلود بوم نهایی';
+      setExportProgress(0);
+    }, 400);
+  }
+};
+
+/* ============================================================
+   INIT
+   ============================================================ */
+refreshPresetSelect();
+syncCanvasSettings();
+el.jpegQualityWrap.style.display = 'none'; // default export format is TIFF
+setTimeout(() => el.fitZoom.click(), 50);
+</script>
+</body>
+</html>
