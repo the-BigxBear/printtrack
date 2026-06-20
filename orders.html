@@ -16,243 +16,94 @@
 <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
-<!-- Favicon: SVG inline bear paw print icon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A8C'/%3E%3Cellipse cx='32' cy='38' rx='13' ry='11' fill='%23F6F1E7'/%3E%3Ccircle cx='20' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='32' cy='21' r='5.5' fill='%23F6F1E7'/%3E%3Ccircle cx='44' cy='25' r='5' fill='%23F6F1E7'/%3E%3Ccircle cx='25' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='34' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='39' cy='36' r='3' fill='%231F3A8C'/%3E%3Ccircle cx='32' cy='42' r='3' fill='%231F3A8C'/%3E%3C/svg%3E">
 
 <script>
 tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        paper: '#F6F1E7',
-        ink: '#221F1B',
-        accent: '#1F3A8C',
-        'press-cyan': '#00AEEF',
-        'press-magenta': '#E5007D',
-        'press-yellow': '#FFE000',
-      },
-      fontFamily: {
-        sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
-      },
-    },
-  },
+  theme: { extend: {
+    colors: { paper:'#F6F1E7', ink:'#221F1B', accent:'#1F3A8C', 'press-cyan':'#00AEEF', 'press-magenta':'#E5007D', 'press-yellow':'#FFE000' },
+    fontFamily: { sans:['Vazirmatn','Tahoma','sans-serif'] },
+  }},
 };
 </script>
 
 <style>
-:root {
-  --paper: #F6F1E7;
-  --ink: #221F1B;
-  --accent: #1F3A8C;
-}
-* { font-family: 'Vazirmatn', 'Tahoma', sans-serif; }
-
-body {
-  background-color: var(--paper);
-  background-image: radial-gradient(rgba(34,31,27,.06) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
-
-/* Color bar like index.html */
-.color-bar { position: fixed; inset-inline: 0; top: 0; height: 5px; display: flex; z-index: 60; }
-.color-bar span { flex: 1 1 0%; }
-
-/* Registration marks */
-.reg-mark { position: absolute; width: 24px; height: 24px; color: var(--ink); opacity: .12; pointer-events: none; }
-.reg-mark.tl { top: 16px; right: 16px; }
-.reg-mark.br { bottom: 16px; left: 16px; }
-
-/* Brand icon */
-.brand-icon {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: rgba(31,58,140,.1); color: var(--accent);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-
-/* Form inputs */
-.form-input {
-  width: 100%; background: #fff; border: 1px solid rgba(34,31,27,.14);
-  border-radius: .625rem; padding: .6rem .85rem; font-size: .9rem;
-  color: var(--ink); transition: border-color .15s, box-shadow .15s;
-}
-.form-input:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(31,58,140,.12);
-}
-
-.flex-input-group { display: flex; gap: .5rem; }
-.btn-add {
-  flex-shrink: 0; width: 40px; height: 40px; border-radius: .625rem;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(31,58,140,.08); color: var(--accent);
-  font-size: 1.35rem; font-weight: 700; line-height: 1;
-  transition: background .15s, color .15s;
-}
-.btn-add:hover { background: var(--accent); color: #fff; }
-
-/* Edit input */
-.edit-input {
-  width: 100%; border: 1px solid rgba(34,31,27,.2);
-  border-radius: 0.625rem; padding: 0.55rem 0.75rem; font-size: 0.875rem;
-  outline: none; background: #fff; transition: border-color .15s, box-shadow .15s;
-}
-.edit-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(31,58,140,.12);
-}
-
-/* Status select */
-.status-select {
-  background: #fff; border: 1px solid #d1d5db;
-  border-radius: 0.5rem; padding: 0.3rem 0.5rem;
-  font-size: 0.78rem; cursor: pointer;
-}
-
-/* Table */
-.table-container::-webkit-scrollbar { height: 6px; width: 6px; }
-.table-container::-webkit-scrollbar-thumb { background: rgba(34,31,27,.2); border-radius: 9999px; }
-
-/* Active filter tag */
-.filter-tag {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(31,58,140,.1); color: var(--accent);
-  border: 1px solid rgba(31,58,140,.25);
-  border-radius: 9999px; padding: 3px 12px 3px 8px;
-  font-size: 0.72rem; font-weight: 700; cursor: default;
-  transition: background .15s;
-}
-.filter-tag .remove-btn {
-  width: 16px; height: 16px; border-radius: 9999px;
-  background: var(--accent); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.6rem; cursor: pointer;
-  transition: background .15s;
-}
-.filter-tag .remove-btn:hover { background: #E5007D; }
-
-/* Clickable column headers */
-.col-filter-btn {
-  cursor: pointer; user-select: none;
-  transition: color .15s;
-  display: inline-flex; align-items: center; gap: 4px;
-}
-.col-filter-btn:hover { color: #00AEEF; }
-
-/* Persian datepicker styles */
-.pwt-datepicker-container {
-  font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
-  border-radius: .75rem !important;
-  box-shadow: 0 10px 30px rgba(34,31,27,.18) !important;
-  border: 1px solid rgba(34,31,27,.08) !important;
-  z-index: 100000 !important;
-}
-.pwt-datepicker-header { background: var(--accent) !important; }
-.pwt-datepicker-day-text.pwt-datepicker-selected-day { background: var(--accent) !important; }
-.pwt-datepicker-day-text:hover { background: rgba(31,58,140,.15) !important; }
-
-/* Mobile card view */
-@media (max-width: 767px) {
-  .desktop-table { display: none; }
-  .mobile-cards { display: block; }
-}
-@media (min-width: 768px) {
-  .desktop-table { display: block; }
-  .mobile-cards { display: none; }
-}
-
-/* Mobile order card */
-.order-card {
-  background: #fff; border: 1px solid rgba(34,31,27,.1);
-  border-radius: 1rem; padding: 1rem; margin-bottom: .75rem;
-  box-shadow: 0 2px 8px rgba(34,31,27,.05);
-  transition: box-shadow .15s;
-}
-.order-card:hover { box-shadow: 0 4px 16px rgba(34,31,27,.1); }
-
-.order-card .card-row {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: .5rem; margin-bottom: .45rem;
-}
-.order-card .card-label {
-  font-size: .68rem; color: rgba(34,31,27,.5); font-weight: 700; white-space: nowrap;
-}
-.order-card .card-value {
-  font-size: .8rem; font-weight: 600; color: var(--ink); text-align: left;
-}
-
-/* Day separator */
-.day-separator {
-  background: rgba(255,224,0,.25);
-  border-top: 1px solid rgba(31,58,140,.1);
-  border-bottom: 1px solid rgba(31,58,140,.1);
-  padding: 8px 14px;
-  font-weight: 900; font-size: .72rem; color: var(--accent);
-  margin: .5rem 0;
-  border-radius: .5rem;
-}
+:root { --paper:#F6F1E7; --ink:#221F1B; --accent:#1F3A8C; }
+* { font-family:'Vazirmatn','Tahoma',sans-serif; }
+body { background-color:var(--paper); background-image:radial-gradient(rgba(34,31,27,.06) 1px, transparent 1px); background-size:18px 18px; }
+.color-bar { position:fixed; inset-inline:0; top:0; height:5px; display:flex; z-index:60; }
+.color-bar span { flex:1 1 0%; }
+.reg-mark { position:absolute; width:24px; height:24px; color:var(--ink); opacity:.12; pointer-events:none; }
+.reg-mark.tl { top:16px; right:16px; } .reg-mark.br { bottom:16px; left:16px; }
+.brand-icon { width:40px; height:40px; border-radius:12px; background:rgba(31,58,140,.1); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.form-input { width:100%; background:#fff; border:1px solid rgba(34,31,27,.14); border-radius:.625rem; padding:.6rem .85rem; font-size:.9rem; color:var(--ink); transition:border-color .15s, box-shadow .15s; }
+.form-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,58,140,.12); }
+.flex-input-group { display:flex; gap:.5rem; }
+.btn-add { flex-shrink:0; width:40px; height:40px; border-radius:.625rem; display:flex; align-items:center; justify-content:center; background:rgba(31,58,140,.08); color:var(--accent); font-size:1.35rem; font-weight:700; line-height:1; transition:background .15s, color .15s; }
+.btn-add:hover { background:var(--accent); color:#fff; }
+.edit-input { width:100%; border:1px solid rgba(34,31,27,.2); border-radius:.625rem; padding:.55rem .75rem; font-size:.875rem; outline:none; background:#fff; transition:border-color .15s, box-shadow .15s; }
+.edit-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,58,140,.12); }
+.status-select { background:#fff; border:1px solid #d1d5db; border-radius:.5rem; padding:.3rem .5rem; font-size:.78rem; cursor:pointer; }
+.table-container::-webkit-scrollbar { height:6px; width:6px; }
+.table-container::-webkit-scrollbar-thumb { background:rgba(34,31,27,.2); border-radius:9999px; }
+.filter-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(31,58,140,.1); color:var(--accent); border:1px solid rgba(31,58,140,.25); border-radius:9999px; padding:3px 12px 3px 8px; font-size:.72rem; font-weight:700; cursor:default; transition:background .15s; }
+.filter-tag .remove-btn { width:16px; height:16px; border-radius:9999px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.6rem; cursor:pointer; transition:background .15s; }
+.filter-tag .remove-btn:hover { background:#E5007D; }
+.col-filter-btn { cursor:pointer; user-select:none; transition:color .15s; display:inline-flex; align-items:center; gap:4px; }
+.col-filter-btn:hover { color:#00AEEF; }
+.pwt-datepicker-container { font-family:'Vazirmatn','Tahoma',sans-serif !important; border-radius:.75rem !important; box-shadow:0 10px 30px rgba(34,31,27,.18) !important; border:1px solid rgba(34,31,27,.08) !important; z-index:100000 !important; }
+.pwt-datepicker-header { background:var(--accent) !important; }
+.pwt-datepicker-day-text.pwt-datepicker-selected-day { background:var(--accent) !important; }
+.pwt-datepicker-day-text:hover { background:rgba(31,58,140,.15) !important; }
+@media (max-width: 767px) { .desktop-table { display:none; } .mobile-cards { display:block; } }
+@media (min-width: 768px) { .desktop-table { display:block; } .mobile-cards { display:none; } }
+.order-card { background:#fff; border:1px solid rgba(34,31,27,.1); border-radius:1rem; padding:1rem; margin-bottom:.75rem; box-shadow:0 2px 8px rgba(34,31,27,.05); transition:box-shadow .15s; }
+.order-card:hover { box-shadow:0 4px 16px rgba(34,31,27,.1); }
+.day-separator { background:rgba(255,224,0,.25); border-top:1px solid rgba(31,58,140,.1); border-bottom:1px solid rgba(31,58,140,.1); padding:8px 14px; font-weight:900; font-size:.72rem; color:var(--accent); margin:.5rem 0; border-radius:.5rem; }
+.stale-badge { background:#fef3c7; color:#92400e; font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:9999px; }
+.edit-drop-zone { border:2px dashed rgba(34,31,27,.2); border-radius:.75rem; padding:1.25rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,.6); }
+.edit-drop-zone:hover { border-color:var(--accent); background:rgba(31,58,140,.05); }
+.edit-thumb-wrap { position:relative; flex-shrink:0; }
+.edit-thumb-wrap img { width:72px; height:72px; object-fit:cover; border-radius:.625rem; border:1px solid rgba(34,31,27,.1); }
+.edit-thumb-remove { position:absolute; top:-8px; left:-8px; background:#E5007D; color:#fff; border-radius:9999px; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.3); }
 </style>
 </head>
 <body class="min-h-screen p-4 sm:p-6 lg:p-10 text-ink">
 
-<!-- CMYK Color Bar -->
 <div class="color-bar" aria-hidden="true">
-  <span class="bg-press-cyan"></span>
-  <span class="bg-press-magenta"></span>
-  <span class="bg-press-yellow"></span>
-  <span class="bg-ink"></span>
+  <span class="bg-press-cyan"></span><span class="bg-press-magenta"></span><span class="bg-press-yellow"></span><span class="bg-ink"></span>
 </div>
 
-<!-- Auth Loading -->
-<div id="authMessage" class="flex justify-center items-center h-screen text-lg font-bold text-ink/60">
-  در حال بررسی دسترسی...
-</div>
+<div id="authMessage" class="flex justify-center items-center h-screen text-lg font-bold text-ink/60">در حال بررسی دسترسی...</div>
 
-<!-- Main App -->
 <div id="appContainer" class="max-w-[1400px] mx-auto bg-white rounded-2xl shadow-xl shadow-ink/5 border border-ink/5 p-5 sm:p-8 hidden relative mt-8">
+  <svg class="reg-mark tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/></svg>
+  <svg class="reg-mark br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/></svg>
 
-  <!-- Registration marks -->
-  <svg class="reg-mark tl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
-  </svg>
-  <svg class="reg-mark br" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-    <circle cx="12" cy="12" r="5"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
-  </svg>
-
-  <!-- Header -->
   <div class="flex flex-wrap items-start justify-between gap-4 border-b border-ink/10 pb-6 mb-6">
     <div class="flex items-center gap-3">
       <div class="brand-icon">
-        <!-- Bear paw icon -->
-        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-          <ellipse cx="12" cy="15" rx="5.5" ry="4.5"/>
-          <circle cx="7" cy="9" r="2"/>
-          <circle cx="12" cy="7.5" r="2.2"/>
-          <circle cx="17" cy="9" r="2"/>
-        </svg>
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><ellipse cx="12" cy="15" rx="5.5" ry="4.5"/><circle cx="7" cy="9" r="2"/><circle cx="12" cy="7.5" r="2.2"/><circle cx="17" cy="9" r="2"/></svg>
       </div>
       <div class="leading-tight">
         <p class="text-[11px] tracking-[0.25em] uppercase text-ink/40 font-bold mb-1">Jamed PRINT</p>
         <h1 class="text-xl sm:text-2xl font-extrabold text-ink">لیست سفارشات ثبت‌شده</h1>
       </div>
+      <span id="staleBadge" class="stale-badge hidden">نمایش داده‌های کش‌شده...</span>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-      <a href="index.html" class="bg-accent text-white hover:bg-accent/90 text-xs font-bold py-2 px-4 rounded-lg transition shadow-md shadow-accent/10">
-        ← ثبت سفارش جدید
-      </a>
+      <a href="index.html" class="bg-accent text-white hover:bg-accent/90 text-xs font-bold py-2 px-4 rounded-lg transition shadow-md shadow-accent/10">← ثبت سفارش جدید</a>
       <button id="logoutBtn" class="bg-ink/5 hover:bg-ink/10 text-ink/70 text-xs font-bold py-2 px-4 rounded-lg transition">خروج</button>
     </div>
   </div>
 
   <!-- ========== FILTER PANEL ========== -->
   <div class="bg-paper/60 border border-ink/8 rounded-2xl p-4 mb-5">
-    <!-- Row 1: Text Search + Status filters -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-      <!-- Text search -->
       <div class="lg:col-span-2">
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">🔍 جستجوی متنی (قبض، مشتری، طراح، چاپخانه)</label>
-        <input type="text" id="searchInput" class="form-input" placeholder="مثال: چاپخانه، طراح ، شماره قبض">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">🔍 جستجوی متنی (قبض، مشتری، طراح، چاپخانه، تگ)</label>
+        <input type="text" id="searchInput" class="form-input" placeholder="مثال: چاپخانه، طراح، شماره قبض، تگ">
       </div>
-      <!-- Settlement filter -->
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت مالی</label>
         <select id="filterSettlement" class="form-input">
@@ -261,7 +112,6 @@ body {
           <option value="تسویه شده">تسویه شده</option>
         </select>
       </div>
-      <!-- Order status filter -->
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت سفارش</label>
         <select id="filterStatus" class="form-input">
@@ -275,19 +125,18 @@ body {
       </div>
     </div>
 
-    <!-- Row 2: Dropdown multi-filters (designer, material, dates) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">طراح</label>
-        <select id="filterDesigner" class="form-input">
-          <option value="all">همه طراحان</option>
-        </select>
+        <select id="filterDesigner" class="form-input"><option value="all">همه طراحان</option></select>
       </div>
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">جنس کار</label>
-        <select id="filterMaterial" class="form-input">
-          <option value="all">همه جنس‌ها</option>
-        </select>
+        <select id="filterMaterial" class="form-input"><option value="all">همه جنس‌ها</option></select>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">چاپخانه</label>
+        <select id="filterPrintingHouse" class="form-input"><option value="all">همه چاپخانه‌ها</option></select>
       </div>
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">📅 تاریخ ثبت سفارش</label>
@@ -299,18 +148,12 @@ body {
       </div>
     </div>
 
-    <!-- Row 3: Active filter tags + actions -->
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <div id="activeFiltersContainer" class="flex flex-wrap gap-2 items-center">
-        <!-- Active filter tags are injected here -->
-      </div>
-      <button onclick="loadOrders()" class="bg-accent text-white font-bold py-2 px-5 rounded-lg text-xs hover:bg-accent/90 transition shadow-md shadow-accent/20 flex-shrink-0">
-        🔄 بروزرسانی
-      </button>
+      <div id="activeFiltersContainer" class="flex flex-wrap gap-2 items-center"></div>
+      <button onclick="loadOrders(true)" class="bg-accent text-white font-bold py-2 px-5 rounded-lg text-xs hover:bg-accent/90 transition shadow-md shadow-accent/20 flex-shrink-0">🔄 بروزرسانی</button>
     </div>
   </div>
 
-  <!-- Time filter badge -->
   <div id="timeFilterStatusBadge" class="hidden mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2.5 rounded-xl text-xs font-bold flex justify-between items-center">
     <span id="timeFilterStatusText">در حال نمایش بازه زمانی خاص...</span>
     <button onclick="resetToDynamicWeeks()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition">بازگشت به هفته جاری</button>
@@ -324,9 +167,7 @@ body {
           <th class="p-3 w-16">قبض</th>
           <th class="p-3">اطلاعات مشتری</th>
           <th class="p-3">مشخصات فنی و همکاران</th>
-          <th class="p-3 w-60 cursor-pointer hover:text-press-yellow transition select-none" onclick="toggleSort()" title="کلیک برای تغییر مرتب‌سازی">
-            <span id="sortLabel">تاریخ‌ها ↕</span>
-          </th>
+          <th class="p-3 w-60 cursor-pointer hover:text-press-yellow transition select-none" onclick="toggleSort()" title="کلیک برای تغییر مرتب‌سازی"><span id="sortLabel">تاریخ‌ها ↕</span></th>
           <th class="p-3 text-center">وضعیت مالی</th>
           <th class="p-3 text-center">تصاویر</th>
           <th class="p-3 text-center">وضعیت سفارش</th>
@@ -337,20 +178,12 @@ body {
     </table>
   </div>
 
-  <!-- ========== MOBILE CARDS ========== -->
   <div class="mobile-cards mb-5" id="mobileCardsContainer"></div>
-
-  <!-- Results count -->
   <p id="resultsCount" class="text-xs text-ink/50 font-semibold text-center mb-4"></p>
 
-  <!-- Pagination / Load more -->
   <div class="flex flex-col sm:flex-row justify-center items-center gap-3 bg-paper/30 p-4 rounded-xl border border-ink/5">
-    <button onclick="showMoreWeeks()" id="loadMoreWeeksBtn" class="bg-ink text-white hover:bg-ink/90 font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-md flex items-center gap-1.5">
-      ➕ مشاهده یک هفته بیشتر
-    </button>
-    <button onclick="openSpecificWeekModal()" class="bg-white text-ink border border-ink/20 hover:bg-paper font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-      📅 مشاهده در یک هفته خاص
-    </button>
+    <button onclick="showMoreWeeks()" id="loadMoreWeeksBtn" class="bg-ink text-white hover:bg-ink/90 font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-md flex items-center gap-1.5">➕ مشاهده یک هفته بیشتر</button>
+    <button onclick="openSpecificWeekModal()" class="bg-white text-ink border border-ink/20 hover:bg-paper font-bold py-2.5 px-6 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">📅 مشاهده در یک هفته خاص</button>
   </div>
 </div>
 
@@ -376,18 +209,9 @@ body {
 <!-- ===== EDIT MODAL ===== -->
 <div id="editModal" class="fixed inset-0 z-[90] hidden bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeEditModal()">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto shadow-2xl border border-ink/10" onclick="event.stopPropagation()">
-    
-    <!-- Modal Header -->
     <div class="flex justify-between items-center border-b border-ink/10 pb-4 mb-5">
       <div class="flex items-center gap-3">
-        <div class="brand-icon w-9 h-9">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
-            <ellipse cx="12" cy="15" rx="5.5" ry="4.5"/>
-            <circle cx="7" cy="9" r="2"/>
-            <circle cx="12" cy="7.5" r="2.2"/>
-            <circle cx="17" cy="9" r="2"/>
-          </svg>
-        </div>
+        <div class="brand-icon w-9 h-9"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><ellipse cx="12" cy="15" rx="5.5" ry="4.5"/><circle cx="7" cy="9" r="2"/><circle cx="12" cy="7.5" r="2.2"/><circle cx="17" cy="9" r="2"/></svg></div>
         <h3 class="text-lg font-bold text-ink">ویرایش اطلاعات سفارش</h3>
       </div>
       <button onclick="closeEditModal()" class="text-ink/40 hover:text-red-500 font-bold text-2xl transition">&times;</button>
@@ -395,72 +219,50 @@ body {
 
     <form id="editForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <input type="hidden" id="editOrderId">
-      
-      <div>
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">شماره قبض</label>
-        <input type="text" id="editReceiptNumber" class="edit-input" required>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام مشتری</label>
-        <input type="text" id="editCustomerName" class="edit-input" required>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام نمایشی</label>
-        <input type="text" id="editDisplayName" class="edit-input">
-      </div>
+      <div><label class="block text-[11px] font-bold mb-1.5 text-ink/55">شماره قبض</label><input type="text" id="editReceiptNumber" class="edit-input"></div>
+      <div><label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام مشتری</label><input type="text" id="editCustomerName" class="edit-input"></div>
+      <div><label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام نمایشی</label><input type="text" id="editDisplayName" class="edit-input"></div>
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">وضعیت همکاری</label>
-        <select id="editCooperationStatus" class="edit-input">
-          <option value="مشتری">مشتری</option>
-          <option value="همکار">همکار</option>
-        </select>
+        <select id="editCooperationStatus" class="edit-input"><option value="مشتری">مشتری</option><option value="همکار">همکار</option></select>
       </div>
-      
-      <!-- Material with dropdown + add -->
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">جنس کار</label>
-        <div class="flex-input-group">
-          <select id="editMaterial" class="edit-input"></select>
-          <button type="button" onclick="addNewOption('materials')" class="btn-add" title="افزودن گزینه جدید">+</button>
-        </div>
+        <div class="flex-input-group"><select id="editMaterial" class="edit-input"></select><button type="button" onclick="addNewOption('materials')" class="btn-add" title="افزودن گزینه جدید">+</button></div>
       </div>
-      
-      <!-- Quantity with dropdown + add -->
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تیراژ</label>
-        <div class="flex-input-group">
-          <select id="editQuantity" class="edit-input"></select>
-          <button type="button" onclick="addNewOption('quantities')" class="btn-add" title="افزودن گزینه جدید">+</button>
-        </div>
+        <div class="flex-input-group"><select id="editQuantity" class="edit-input"></select><button type="button" onclick="addNewOption('quantities')" class="btn-add" title="افزودن گزینه جدید">+</button></div>
       </div>
-      
-      <!-- Designer with dropdown + add -->
+      <div>
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">سایز کار</label>
+        <div class="flex-input-group"><select id="editSize" class="edit-input"></select><button type="button" onclick="addNewOption('sizes')" class="btn-add" title="افزودن گزینه جدید">+</button></div>
+      </div>
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">نام کاربر طراح</label>
-        <div class="flex-input-group">
-          <select id="editDesignerName" class="edit-input"></select>
-          <button type="button" onclick="addNewOption('designers')" class="btn-add" title="افزودن گزینه جدید">+</button>
-        </div>
+        <div class="flex-input-group"><select id="editDesignerName" class="edit-input"></select><button type="button" onclick="addNewOption('designers')" class="btn-add" title="افزودن گزینه جدید">+</button></div>
       </div>
-      
-      <!-- Printing house with dropdown + add -->
       <div>
         <label class="block text-[11px] font-bold mb-1.5 text-ink/55">چاپخانه</label>
-        <div class="flex-input-group">
-          <select id="editPrintingHouse" class="edit-input"></select>
-          <button type="button" onclick="addNewOption('printingHouses')" class="btn-add" title="افزودن گزینه جدید">+</button>
+        <div class="flex-input-group"><select id="editPrintingHouse" class="edit-input"></select><button type="button" onclick="addNewOption('printingHouses')" class="btn-add" title="افزودن گزینه جدید">+</button></div>
+      </div>
+      <div><label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ سفارش</label><input type="text" id="editOrderDate" class="edit-input pdate-edit" readonly style="cursor:pointer;"></div>
+      <div><label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ حدودی حاضر شدن</label><input type="text" id="editEstimatedReadyDate" class="edit-input pdate-edit" readonly style="cursor:pointer;"></div>
+
+      <div class="sm:col-span-2">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تگ‌ها (با کاما — فقط برای جستجو)</label>
+        <input type="text" id="editTagsInput" class="edit-input" placeholder="مثال: فوری, تخفیف‌دار">
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تصاویر سفارش (حداکثر ۲ عکس)</label>
+        <div id="editThumbsRow" class="flex gap-3 mb-2 flex-wrap"></div>
+        <div id="editDropZone" class="edit-drop-zone">
+          <p class="text-xs font-bold text-ink/60">برای افزودن عکس کلیک کنید یا بکشید</p>
+          <input type="file" id="editFileInput" accept="image/*" multiple class="hidden">
         </div>
       </div>
-      
-      <div>
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ سفارش</label>
-        <input type="text" id="editOrderDate" class="edit-input pdate-edit" readonly style="cursor:pointer;">
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold mb-1.5 text-ink/55">تاریخ حدودی حاضر شدن</label>
-        <input type="text" id="editEstimatedReadyDate" class="edit-input pdate-edit" readonly style="cursor:pointer;">
-      </div>
-      
+
       <div class="sm:col-span-2 flex justify-end gap-2 border-t border-ink/10 pt-4 mt-2">
         <button type="button" onclick="closeEditModal()" class="bg-ink/5 hover:bg-ink/10 text-ink/70 font-bold py-2.5 px-5 rounded-lg text-sm transition">انصراف</button>
         <button type="submit" id="editSubmitBtn" class="bg-accent hover:bg-accent/90 text-white font-bold py-2.5 px-7 rounded-lg text-sm transition shadow-md shadow-accent/20">ذخیره تغییرات</button>
@@ -488,6 +290,19 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
 
+// ============ CACHE (stale-while-revalidate; real deployed page, not a Claude artifact) ============
+const ORDERS_CACHE_KEY = 'cache_orders_list';
+const ORDERS_CACHE_TTL_MS = 2 * 60 * 1000;
+const DROPDOWNS_CACHE_KEY = 'cache_dropdowns';
+
+function getCachedRaw(key) {
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+function setCachedRaw(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
+}
+function isCacheFresh(entry, ttl) { return entry && (Date.now() - entry.ts) < ttl; }
+
 // ============ STATE ============
 let allOrders = [];
 let weeksToShow = 1;
@@ -495,16 +310,12 @@ let timeFilterMode = 'dynamic';
 let specificTargetTimestamp = null;
 let specificTargetDate = null;
 let currentSortField = 'createdAt';
+let dropdownDataCache = { materials: [], quantities: [], designers: [], printingHouses: [], sizes: [] };
+let editThumbnails = [];
 
-// Multi-filter state (separate from the old single search)
 let activeFilters = {
-  search: '',
-  settlement: 'all',
-  status: 'all',
-  designer: 'all',
-  material: 'all',
-  orderDate: '',     // exact date string match e.g. "1403/02/15"
-  deliveryDate: '',  // exact date string match e.g. "1403/02/20"
+  search: '', settlement: 'all', status: 'all', designer: 'all', material: 'all',
+  printingHouse: 'all', orderDate: '', deliveryDate: '',
 };
 
 // ============ AUTH ============
@@ -513,158 +324,103 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("authMessage").style.display = "none";
     document.getElementById("appContainer").classList.remove("hidden");
     initAppFeatures();
-    loadOrders();
+    loadOrders(false);
     runAutoCleanup();
   } else {
     window.location.href = "index.html";
   }
 });
-
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "index.html");
 });
 
 // ============ INIT ============
 function initAppFeatures() {
-  // Specific week datepicker
   $('#targetWeekDate').persianDatepicker({
-    format: 'YYYY/MM/DD',
-    initialValue: false,
-    autoClose: true,
-    onSelect: function(unixTimestamp) {
-      specificTargetTimestamp = unixTimestamp;
-    }
+    format: 'YYYY/MM/DD', initialValue: false, autoClose: true,
+    onSelect: function (unixTimestamp) { specificTargetTimestamp = unixTimestamp; }
   });
   specificTargetTimestamp = new persianDate().valueOf();
 
-  // Filter datepickers – orderDate and deliveryDate
-  $('#filterOrderDate').persianDatepicker({
-    format: 'YYYY/MM/DD',
-    initialValue: false,
-    autoClose: true,
-    onSelect: function() {
-      // value is set on the input; we read it on change
-    }
-  });
-  $('#filterOrderDate').on('change', function() {
-    const val = $(this).val().trim();
-    activeFilters.orderDate = val;
-    renderFilterTags();
-    renderFilteredData();
-  });
+  $('#filterOrderDate').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: false, autoClose: true });
+  $('#filterOrderDate').on('change', function () { activeFilters.orderDate = $(this).val().trim(); renderFilterTags(); renderFilteredData(); });
 
-  $('#filterDeliveryDate').persianDatepicker({
-    format: 'YYYY/MM/DD',
-    initialValue: false,
-    autoClose: true,
-    onSelect: function() {}
-  });
-  $('#filterDeliveryDate').on('change', function() {
-    const val = $(this).val().trim();
-    activeFilters.deliveryDate = val;
-    renderFilterTags();
-    renderFilteredData();
-  });
+  $('#filterDeliveryDate').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: false, autoClose: true });
+  $('#filterDeliveryDate').on('change', function () { activeFilters.deliveryDate = $(this).val().trim(); renderFilterTags(); renderFilteredData(); });
 
-  // Edit modal datepickers (initialized when modal opens)
-  initEditDatepickers();
+  document.getElementById("searchInput").addEventListener("input", function () { activeFilters.search = this.value.trim(); renderFilterTags(); renderFilteredData(); });
+  document.getElementById("filterSettlement").addEventListener("change", function () { activeFilters.settlement = this.value; renderFilterTags(); renderFilteredData(); });
+  document.getElementById("filterStatus").addEventListener("change", function () { activeFilters.status = this.value; renderFilterTags(); renderFilteredData(); });
+  document.getElementById("filterDesigner").addEventListener("change", function () { activeFilters.designer = this.value; renderFilterTags(); renderFilteredData(); });
+  document.getElementById("filterMaterial").addEventListener("change", function () { activeFilters.material = this.value; renderFilterTags(); renderFilteredData(); });
+  document.getElementById("filterPrintingHouse").addEventListener("change", function () { activeFilters.printingHouse = this.value; renderFilterTags(); renderFilteredData(); });
 
-  // Dropdown listeners
-  document.getElementById("searchInput").addEventListener("input", function() {
-    activeFilters.search = this.value.trim();
-    renderFilterTags();
-    renderFilteredData();
-  });
-  document.getElementById("filterSettlement").addEventListener("change", function() {
-    activeFilters.settlement = this.value;
-    renderFilterTags();
-    renderFilteredData();
-  });
-  document.getElementById("filterStatus").addEventListener("change", function() {
-    activeFilters.status = this.value;
-    renderFilterTags();
-    renderFilteredData();
-  });
-  document.getElementById("filterDesigner").addEventListener("change", function() {
-    activeFilters.designer = this.value;
-    renderFilterTags();
-    renderFilteredData();
-  });
-  document.getElementById("filterMaterial").addEventListener("change", function() {
-    activeFilters.material = this.value;
-    renderFilterTags();
-    renderFilteredData();
-  });
+  initEditImageHandling();
 }
 
-function initEditDatepickers() {
-  // We initialize on first open (see openEditModal)
-}
-
-// ============ LOAD ORDERS ============
-window.loadOrders = async function() {
+// ============ LOAD ORDERS (stale-while-revalidate) ============
+window.loadOrders = async function (forceFresh) {
   const tbody = document.getElementById("ordersTableBody");
   const mobileContainer = document.getElementById("mobileCardsContainer");
-  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</td></tr>';
-  mobileContainer.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</p>';
+  const staleBadge = document.getElementById("staleBadge");
+
+  const cached = getCachedRaw(ORDERS_CACHE_KEY);
+  if (cached && !forceFresh) {
+    allOrders = cached.data;
+    populateFilterDropdowns();
+    renderFilteredData();
+    if (!isCacheFresh(cached, ORDERS_CACHE_TTL_MS)) staleBadge.classList.remove("hidden");
+  } else {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</td></tr>';
+    mobileContainer.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">در حال دریافت اطلاعات...</p>';
+  }
 
   try {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     allOrders = [];
     snapshot.forEach(docSnap => allOrders.push({ id: docSnap.id, ...docSnap.data() }));
-
-    // Populate filter dropdowns
+    setCachedRaw(ORDERS_CACHE_KEY, allOrders);
+    staleBadge.classList.add("hidden");
     populateFilterDropdowns();
     renderFilteredData();
   } catch (error) {
     console.error(error);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور!</td></tr>';
+    if (!cached) tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 font-bold text-red-500">خطا در ارتباط با سرور!</td></tr>';
   }
 };
 
 function populateFilterDropdowns() {
   const designers = [...new Set(allOrders.map(o => o.designerName).filter(Boolean))].sort();
   const materials = [...new Set(allOrders.map(o => o.material).filter(Boolean))].sort();
-
-  const designerSel = document.getElementById("filterDesigner");
-  const materialSel = document.getElementById("filterMaterial");
-
-  designerSel.innerHTML = '<option value="all">همه طراحان</option>';
-  designers.forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d; opt.textContent = d;
-    designerSel.appendChild(opt);
-  });
-
-  materialSel.innerHTML = '<option value="all">همه جنس‌ها</option>';
-  materials.forEach(m => {
-    const opt = document.createElement("option");
-    opt.value = m; opt.textContent = m;
-    materialSel.appendChild(opt);
-  });
+  const printingHouses = [...new Set(allOrders.map(o => o.printingHouse).filter(Boolean))].sort();
+  fillSelect("filterDesigner", designers, "همه طراحان");
+  fillSelect("filterMaterial", materials, "همه جنس‌ها");
+  fillSelect("filterPrintingHouse", printingHouses, "همه چاپخانه‌ها");
+}
+function fillSelect(id, items, allLabel) {
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  sel.innerHTML = `<option value="all">${allLabel}</option>`;
+  items.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); });
+  if (current) sel.value = current;
 }
 
 // ============ FILTER TAGS RENDERING ============
 function renderFilterTags() {
   const container = document.getElementById("activeFiltersContainer");
   container.innerHTML = '';
-
   const tags = [];
-
   if (activeFilters.search) tags.push({ label: `جستجو: ${activeFilters.search}`, key: 'search', clearVal: '' });
   if (activeFilters.settlement !== 'all') tags.push({ label: `مالی: ${activeFilters.settlement}`, key: 'settlement', clearVal: 'all' });
   if (activeFilters.status !== 'all') tags.push({ label: `وضعیت: ${activeFilters.status}`, key: 'status', clearVal: 'all' });
   if (activeFilters.designer !== 'all') tags.push({ label: `طراح: ${activeFilters.designer}`, key: 'designer', clearVal: 'all' });
   if (activeFilters.material !== 'all') tags.push({ label: `جنس: ${activeFilters.material}`, key: 'material', clearVal: 'all' });
+  if (activeFilters.printingHouse !== 'all') tags.push({ label: `چاپخانه: ${activeFilters.printingHouse}`, key: 'printingHouse', clearVal: 'all' });
   if (activeFilters.orderDate) tags.push({ label: `تاریخ ثبت: ${activeFilters.orderDate}`, key: 'orderDate', clearVal: '' });
   if (activeFilters.deliveryDate) tags.push({ label: `تاریخ تحویل: ${activeFilters.deliveryDate}`, key: 'deliveryDate', clearVal: '' });
 
-  if (tags.length === 0) {
-    container.innerHTML = '<span class="text-xs text-ink/35 font-semibold">بدون فیلتر فعال</span>';
-    return;
-  }
-
+  if (tags.length === 0) { container.innerHTML = '<span class="text-xs text-ink/35 font-semibold">بدون فیلتر فعال</span>'; return; }
   tags.forEach(tag => {
     const el = document.createElement("div");
     el.className = "filter-tag";
@@ -672,21 +428,17 @@ function renderFilterTags() {
     container.appendChild(el);
   });
 }
-
-window.removeFilter = function(key, clearVal) {
+window.removeFilter = function (key, clearVal) {
   activeFilters[key] = clearVal;
-
-  // Sync UI controls
   if (key === 'search') document.getElementById("searchInput").value = '';
   if (key === 'settlement') document.getElementById("filterSettlement").value = 'all';
   if (key === 'status') document.getElementById("filterStatus").value = 'all';
   if (key === 'designer') document.getElementById("filterDesigner").value = 'all';
   if (key === 'material') document.getElementById("filterMaterial").value = 'all';
-  if (key === 'orderDate') { document.getElementById("filterOrderDate").value = ''; }
-  if (key === 'deliveryDate') { document.getElementById("filterDeliveryDate").value = ''; }
-
-  renderFilterTags();
-  renderFilteredData();
+  if (key === 'printingHouse') document.getElementById("filterPrintingHouse").value = 'all';
+  if (key === 'orderDate') document.getElementById("filterOrderDate").value = '';
+  if (key === 'deliveryDate') document.getElementById("filterDeliveryDate").value = '';
+  renderFilterTags(); renderFilteredData();
 };
 
 // ============ CORE FILTER + RENDER ============
@@ -695,89 +447,66 @@ function renderFilteredData() {
   const now = new Date();
 
   let filtered = allOrders.filter(order => {
-    // Text search
     const matchesSearch = !searchTerm || (
       (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
       (order.receiptNumber && order.receiptNumber.includes(searchTerm)) ||
       (order.displayName && order.displayName.toLowerCase().includes(searchTerm)) ||
       (order.material && order.material.toLowerCase().includes(searchTerm)) ||
       (order.designerName && order.designerName.toLowerCase().includes(searchTerm)) ||
-      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm))
+      (order.printingHouse && order.printingHouse.toLowerCase().includes(searchTerm)) ||
+      (order.tags && order.tags.some(t => t.toLowerCase().includes(searchTerm)))
     );
-
     const matchesSettlement = activeFilters.settlement === 'all' || order.settlementStatus === activeFilters.settlement;
     const matchesStatus = activeFilters.status === 'all' || order.status === activeFilters.status;
     const matchesDesigner = activeFilters.designer === 'all' || order.designerName === activeFilters.designer;
     const matchesMaterial = activeFilters.material === 'all' || order.material === activeFilters.material;
-
-    // Date filters: match on orderDate and estimatedReadyDate strings
+    const matchesPrintingHouse = activeFilters.printingHouse === 'all' || order.printingHouse === activeFilters.printingHouse;
     const matchesOrderDate = !activeFilters.orderDate || (order.orderDate && order.orderDate === activeFilters.orderDate);
     const matchesDeliveryDate = !activeFilters.deliveryDate || (order.estimatedReadyDate && order.estimatedReadyDate === activeFilters.deliveryDate);
-
-    return matchesSearch && matchesSettlement && matchesStatus && matchesDesigner && matchesMaterial && matchesOrderDate && matchesDeliveryDate;
+    return matchesSearch && matchesSettlement && matchesStatus && matchesDesigner && matchesMaterial && matchesPrintingHouse && matchesOrderDate && matchesDeliveryDate;
   });
 
-  // Time window filter
   filtered = filtered.filter(order => {
     const orderTime = order.createdAt ? new Date(order.createdAt) : new Date();
     if (timeFilterMode === 'dynamic') {
-      const threshold = new Date();
-      threshold.setDate(now.getDate() - (weeksToShow * 7));
-      threshold.setHours(0, 0, 0, 0);
+      const threshold = new Date(); threshold.setDate(now.getDate() - (weeksToShow * 7)); threshold.setHours(0, 0, 0, 0);
       return orderTime >= threshold;
     } else if (timeFilterMode === 'specific') {
-      const endWindow = new Date(specificTargetDate);
-      endWindow.setHours(23, 59, 59, 999);
-      const startWindow = new Date(specificTargetDate);
-      startWindow.setDate(startWindow.getDate() - 7);
-      startWindow.setHours(0, 0, 0, 0);
+      const endWindow = new Date(specificTargetDate); endWindow.setHours(23, 59, 59, 999);
+      const startWindow = new Date(specificTargetDate); startWindow.setDate(startWindow.getDate() - 7); startWindow.setHours(0, 0, 0, 0);
       return orderTime >= startWindow && orderTime <= endWindow;
     }
     return true;
   });
 
-  // Sort
   filtered.sort((a, b) => {
-    if (currentSortField === 'createdAt') {
-      return (b.createdAt ? new Date(b.createdAt) : 0) - (a.createdAt ? new Date(a.createdAt) : 0);
-    } else {
-      return (b.estimatedReadyDate || "").localeCompare(a.estimatedReadyDate || "");
-    }
+    if (currentSortField === 'createdAt') return (b.createdAt ? new Date(b.createdAt) : 0) - (a.createdAt ? new Date(a.createdAt) : 0);
+    return (b.estimatedReadyDate || "").localeCompare(a.estimatedReadyDate || "");
   });
 
   document.getElementById("resultsCount").textContent = `${filtered.length} سفارش یافت شد`;
   renderDesktopTable(filtered);
   renderMobileCards(filtered);
 }
-
-// Keep the old filterData alias
 window.filterData = renderFilteredData;
 
 // ============ DESKTOP TABLE ============
 function renderDesktopTable(data) {
   const tbody = document.getElementById("ordersTableBody");
   tbody.innerHTML = "";
-
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-10 font-bold text-ink/50">هیچ سفارشی با این فیلترها یافت نشد.</td></tr>';
-    return;
-  }
+  if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center p-10 font-bold text-ink/50">هیچ سفارشی با این فیلترها یافت نشد.</td></tr>'; return; }
 
   let lastDayLabel = "";
-
   data.forEach(order => {
     const orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
     let dayLabel = "نامشخص";
-    try {
-      dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp);
-    } catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
+    try { dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp); }
+    catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
 
     if (dayLabel !== lastDayLabel) {
-      const sep = document.createElement("tr");
-      sep.className = "select-none";
+      const sep = document.createElement("tr"); sep.className = "select-none";
       sep.innerHTML = `<td colspan="8" class="p-2.5 text-right bg-amber-50/70 border-y border-ink/8 font-black text-accent text-xs">📅 محموله‌های روز: ${dayLabel}</td>`;
-      tbody.appendChild(sep);
-      lastDayLabel = dayLabel;
+      tbody.appendChild(sep); lastDayLabel = dayLabel;
     }
 
     let imagesHtml = order.thumbnails && order.thumbnails.length > 0
@@ -789,32 +518,20 @@ function renderDesktopTable(data) {
     tr.innerHTML = `
       <td class="p-3 font-black text-accent text-base">${order.receiptNumber || '-'}</td>
       <td class="p-3">
-        <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="addTagFilter('search','${(order.customerName||'').replace(/'/g,"\\'")}','${order.customerName||''}')">${order.customerName || '-'}</div>
+        <div class="font-bold text-ink cursor-pointer hover:text-accent hover:underline" onclick="addTagFilter('${(order.customerName || '').replace(/'/g, "\\'")}')">${order.customerName || '-'}</div>
         <div class="text-[11px] text-ink/55 mt-0.5">نمایشی: <span class="font-semibold">${order.displayName || '-'}</span></div>
         <div class="text-[10px] bg-ink/10 text-ink/70 inline-block px-1.5 py-0.5 rounded mt-1 font-bold">${order.cooperationStatus || 'مشتری'}</div>
       </td>
       <td class="p-3 text-xs">
-        <div class="font-bold text-ink mb-1 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('material','${(order.material||'').replace(/'/g,"\\'")}')">
-          ${order.material || '-'} <span class="text-ink/45 font-normal">(تیراژ: ${order.quantity || '-'})</span>
+        <div class="font-bold text-ink mb-1 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('material','${(order.material || '').replace(/'/g, "\\'")}')">
+          ${order.material || '-'} <span class="text-ink/45 font-normal">(تیراژ: ${order.quantity || '-'}${order.size ? ' · سایز: ' + order.size : ''})</span>
         </div>
-        <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('designer','${(order.designerName||'').replace(/'/g,"\\'")}')">
-          ${order.designerName || '-'}
-        </span></div>
-        <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80">${order.printingHouse || '-'}</span></div>
+        <div class="text-ink/60 mb-0.5">طراح: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('designer','${(order.designerName || '').replace(/'/g, "\\'")}')">${order.designerName || '-'}</span></div>
+        <div class="text-ink/60">چاپخانه: <span class="font-bold text-ink/80 cursor-pointer hover:text-accent hover:underline" onclick="addDropdownFilter('printingHouse','${(order.printingHouse || '').replace(/'/g, "\\'")}')">${order.printingHouse || '-'}</span></div>
       </td>
       <td class="p-3 text-xs">
-        <div class="mb-1 text-ink/80">
-          <span class="opacity-60">ثبت:</span>
-          <span class="font-bold cursor-pointer hover:text-accent hover:underline" onclick="addDateFilter('orderDate','${order.orderDate||''}')" title="فیلتر بر اساس این تاریخ">
-            ${order.orderDate || '-'}
-          </span>
-        </div>
-        <div class="text-accent">
-          <span class="opacity-70">آماده:</span>
-          <span class="font-bold cursor-pointer hover:text-accent/70 hover:underline" onclick="addDateFilter('deliveryDate','${order.estimatedReadyDate||''}')" title="فیلتر بر اساس این تاریخ">
-            ${order.estimatedReadyDate || '-'}
-          </span>
-        </div>
+        <div class="mb-1 text-ink/80"><span class="opacity-60">ثبت:</span> <span class="font-bold cursor-pointer hover:text-accent hover:underline" onclick="addDateFilter('orderDate','${order.orderDate || ''}')">${order.orderDate || '-'}</span></div>
+        <div class="text-accent"><span class="opacity-70">آماده:</span> <span class="font-bold cursor-pointer hover:text-accent/70 hover:underline" onclick="addDateFilter('deliveryDate','${order.estimatedReadyDate || ''}')">${order.estimatedReadyDate || '-'}</span></div>
       </td>
       <td class="p-3 text-center">
         <select onchange="updateSettlement('${order.id}', this.value)" class="status-select font-bold text-center outline-none ${order.settlementStatus === 'تسویه شده' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
@@ -825,23 +542,19 @@ function renderDesktopTable(data) {
       <td class="p-3 text-center">${imagesHtml}</td>
       <td class="p-3 text-center">
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[130px]">
-          ${['سفارش داده شده','در پروسه تولید','درحال ارسال  ','تحویل داده شده','کنسل شده']
-            .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
       <td class="p-3 text-center">
         <div class="flex items-center justify-center gap-1.5">
           <button onclick="openEditModal('${order.id}')" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition shadow-sm gap-1" title="ویرایش">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
-            ویرایش
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>ویرایش
           </button>
           <button onclick="deleteOrder('${order.id}')" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs transition shadow-sm gap-1" title="حذف">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            حذف
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>حذف
           </button>
         </div>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   });
 }
@@ -850,27 +563,18 @@ function renderDesktopTable(data) {
 function renderMobileCards(data) {
   const container = document.getElementById("mobileCardsContainer");
   container.innerHTML = "";
-
-  if (data.length === 0) {
-    container.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">هیچ سفارشی یافت نشد.</p>';
-    return;
-  }
+  if (data.length === 0) { container.innerHTML = '<p class="text-center p-8 font-bold text-ink/50">هیچ سفارشی یافت نشد.</p>'; return; }
 
   let lastDayLabel = "";
-
   data.forEach(order => {
     const orderTimestamp = order.createdAt ? new Date(order.createdAt) : new Date();
     let dayLabel = "نامشخص";
-    try {
-      dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp);
-    } catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
+    try { dayLabel = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(orderTimestamp); }
+    catch (e) { dayLabel = order.orderDate || "تاریخ نامشخص"; }
 
     if (dayLabel !== lastDayLabel) {
-      const sep = document.createElement("div");
-      sep.className = "day-separator";
-      sep.textContent = `📅 ${dayLabel}`;
-      container.appendChild(sep);
-      lastDayLabel = dayLabel;
+      const sep = document.createElement("div"); sep.className = "day-separator"; sep.textContent = `📅 ${dayLabel}`;
+      container.appendChild(sep); lastDayLabel = dayLabel;
     }
 
     const statusColors = {
@@ -885,112 +589,82 @@ function renderMobileCards(data) {
     let imagesHtml = '';
     if (order.thumbnails && order.thumbnails.length > 0) {
       imagesHtml = `<div class="flex gap-2 mt-3 overflow-x-auto pb-1">` +
-        order.thumbnails.map(src => `<img src="${src}" class="w-16 h-16 object-cover rounded-xl border border-ink/10 flex-shrink-0 cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('') +
-        `</div>`;
+        order.thumbnails.map(src => `<img src="${src}" class="w-16 h-16 object-cover rounded-xl border border-ink/10 flex-shrink-0 cursor-zoom-in shadow-sm" onclick="openImageModal('${src}')">`).join('') + `</div>`;
     }
 
     const card = document.createElement("div");
     card.className = "order-card";
     card.innerHTML = `
       <div class="flex items-start justify-between mb-3">
-        <div>
-          <span class="text-xl font-black text-accent">#${order.receiptNumber || '-'}</span>
-          <span class="mr-2 text-xs font-bold text-ink/50">${order.cooperationStatus || ''}</span>
-        </div>
+        <div><span class="text-xl font-black text-accent">#${order.receiptNumber || '-'}</span><span class="mr-2 text-xs font-bold text-ink/50">${order.cooperationStatus || ''}</span></div>
         <span class="text-[11px] font-bold px-2.5 py-1 rounded-full border ${statusClass}">${order.status || ''}</span>
       </div>
       <div class="font-bold text-ink text-sm mb-0.5">${order.customerName || '-'}</div>
       ${order.displayName ? `<div class="text-xs text-ink/55 mb-2">نمایشی: ${order.displayName}</div>` : ''}
-
       <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs my-3 bg-paper/60 rounded-xl p-3">
         <div><span class="text-ink/50">جنس:</span> <span class="font-semibold">${order.material || '-'}</span></div>
         <div><span class="text-ink/50">تیراژ:</span> <span class="font-semibold">${order.quantity || '-'}</span></div>
+        <div><span class="text-ink/50">سایز:</span> <span class="font-semibold">${order.size || '-'}</span></div>
         <div><span class="text-ink/50">طراح:</span> <span class="font-semibold">${order.designerName || '-'}</span></div>
         <div><span class="text-ink/50">چاپخانه:</span> <span class="font-semibold">${order.printingHouse || '-'}</span></div>
         <div><span class="text-ink/50">تاریخ ثبت:</span> <span class="font-semibold">${order.orderDate || '-'}</span></div>
         <div><span class="text-ink/50 text-accent">تحویل:</span> <span class="font-semibold text-accent">${order.estimatedReadyDate || '-'}</span></div>
       </div>
-
       ${imagesHtml}
-
       <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-ink/10">
         <select onchange="updateSettlement('${order.id}', this.value)" class="status-select font-bold flex-1 min-w-[120px] ${order.settlementStatus === 'تسویه شده' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}">
           <option value="تسویه نشده" ${order.settlementStatus !== 'تسویه شده' ? 'selected' : ''}>تسویه نشده</option>
           <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
         </select>
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select flex-1 min-w-[130px]">
-          ${['سفارش داده شده','در پروسه تولید','درحال ارسال  ','تحویل داده شده','کنسل شده']
-            .map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </div>
       <div class="flex gap-2 mt-2">
         <button onclick="openEditModal('${order.id}')" class="flex-1 flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs transition">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-          ویرایش
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>ویرایش
         </button>
         <button onclick="deleteOrder('${order.id}')" class="flex-1 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-xs transition">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          حذف
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>حذف
         </button>
-      </div>
-    `;
+      </div>`;
     container.appendChild(card);
   });
 }
 
 // ============ CLICK-TO-FILTER HELPERS ============
-window.addTagFilter = function(key, escapedVal, displayVal) {
-  // For text search-based tag click
+window.addTagFilter = function (displayVal) {
   if (!displayVal || displayVal === '-') return;
   activeFilters.search = displayVal;
   document.getElementById("searchInput").value = displayVal;
-  renderFilterTags();
-  renderFilteredData();
+  renderFilterTags(); renderFilteredData();
 };
-
-window.addDropdownFilter = function(type, val) {
+window.addDropdownFilter = function (type, val) {
   if (!val || val === '-') return;
-  if (type === 'designer') {
-    activeFilters.designer = val;
-    document.getElementById("filterDesigner").value = val;
-  } else if (type === 'material') {
-    activeFilters.material = val;
-    document.getElementById("filterMaterial").value = val;
-  }
-  renderFilterTags();
-  renderFilteredData();
+  if (type === 'designer') { activeFilters.designer = val; document.getElementById("filterDesigner").value = val; }
+  else if (type === 'material') { activeFilters.material = val; document.getElementById("filterMaterial").value = val; }
+  else if (type === 'printingHouse') { activeFilters.printingHouse = val; document.getElementById("filterPrintingHouse").value = val; }
+  renderFilterTags(); renderFilteredData();
 };
-
-window.addDateFilter = function(type, val) {
+window.addDateFilter = function (type, val) {
   if (!val || val === '-') return;
-  if (type === 'orderDate') {
-    activeFilters.orderDate = val;
-    document.getElementById("filterOrderDate").value = val;
-  } else if (type === 'deliveryDate') {
-    activeFilters.deliveryDate = val;
-    document.getElementById("filterDeliveryDate").value = val;
-  }
-  renderFilterTags();
-  renderFilteredData();
+  if (type === 'orderDate') { activeFilters.orderDate = val; document.getElementById("filterOrderDate").value = val; }
+  else if (type === 'deliveryDate') { activeFilters.deliveryDate = val; document.getElementById("filterDeliveryDate").value = val; }
+  renderFilterTags(); renderFilteredData();
 };
 
 // ============ SORT ============
-window.toggleSort = function() {
+window.toggleSort = function () {
   currentSortField = currentSortField === 'createdAt' ? 'estimatedReadyDate' : 'createdAt';
   document.getElementById("sortLabel").textContent = currentSortField === 'createdAt' ? 'تاریخ‌ها (زمان ثبت ↕)' : 'تاریخ‌ها (موعد تحویل ↕)';
   renderFilteredData();
 };
 
 // ============ TIME WINDOW CONTROLS ============
-window.showMoreWeeks = function() { weeksToShow++; renderFilteredData(); };
-
-window.openSpecificWeekModal = function() {
-  document.getElementById("specificWeekModal").classList.remove("hidden");
-};
-window.closeSpecificWeekModal = function() {
-  document.getElementById("specificWeekModal").classList.add("hidden");
-};
-window.submitSpecificWeek = function() {
+window.showMoreWeeks = function () { weeksToShow++; renderFilteredData(); };
+window.openSpecificWeekModal = function () { document.getElementById("specificWeekModal").classList.remove("hidden"); };
+window.closeSpecificWeekModal = function () { document.getElementById("specificWeekModal").classList.add("hidden"); };
+window.submitSpecificWeek = function () {
   if (!specificTargetTimestamp) { alert("لطفاً دوباره تاریخ را انتخاب کنید."); return; }
   timeFilterMode = 'specific';
   specificTargetDate = new Date(specificTargetTimestamp);
@@ -1000,62 +674,58 @@ window.submitSpecificWeek = function() {
   closeSpecificWeekModal();
   renderFilteredData();
 };
-window.resetToDynamicWeeks = function() {
-  timeFilterMode = 'dynamic';
-  weeksToShow = 1;
+window.resetToDynamicWeeks = function () {
+  timeFilterMode = 'dynamic'; weeksToShow = 1;
   document.getElementById("timeFilterStatusBadge").style.display = 'none';
   renderFilteredData();
 };
 
 // ============ IMAGE MODAL ============
-window.openImageModal = function(src) {
+window.openImageModal = function (src) {
   document.getElementById("modalImage").src = src;
   document.getElementById("imageModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 };
-window.closeImageModal = function() {
+window.closeImageModal = function () {
   document.getElementById("imageModal").classList.add("hidden");
   setTimeout(() => { document.getElementById("modalImage").src = ""; }, 300);
   document.body.style.overflow = "auto";
 };
 
-// ============ EDIT MODAL ============
-let editDatepickersInited = false;
-
-async function loadDropdownsForEdit(order) {
+// ============ DROPDOWN DATA (cached, shared by edit modal + addNewOption) ============
+async function loadDropdownDataCached() {
+  const cached = getCachedRaw(DROPDOWNS_CACHE_KEY);
+  if (cached) dropdownDataCache = cached.data;
   try {
     const docRef = doc(db, "settings", "dropdowns");
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      populateEditSelect("editMaterial", data.materials || [], order.material || "");
-      populateEditSelect("editQuantity", data.quantities || [], order.quantity || "");
-      populateEditSelect("editDesignerName", data.designers || [], order.designerName || "");
-      populateEditSelect("editPrintingHouse", data.printingHouses || [], order.printingHouse || "");
+      const d = docSnap.data();
+      dropdownDataCache = { materials: d.materials || [], quantities: d.quantities || [], designers: d.designers || [], printingHouses: d.printingHouses || [], sizes: d.sizes || [] };
+      setCachedRaw(DROPDOWNS_CACHE_KEY, dropdownDataCache);
     }
-  } catch (e) {
-    console.error("خطا در بارگذاری دراپ‌داون‌ها:", e);
-  }
+  } catch (e) { console.warn("Dropdown fetch failed, using cache:", e); }
+  return dropdownDataCache;
 }
+
+// ============ EDIT MODAL ============
+let editDatepickersInited = false;
 
 function populateEditSelect(elementId, items, currentVal) {
   const select = document.getElementById(elementId);
   select.innerHTML = "";
   items.forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item; opt.textContent = item;
+    const opt = document.createElement("option"); opt.value = item; opt.textContent = item;
     if (item === currentVal) opt.selected = true;
     select.appendChild(opt);
   });
-  // If currentVal not in list, add it
   if (currentVal && !items.includes(currentVal)) {
-    const opt = document.createElement("option");
-    opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
+    const opt = document.createElement("option"); opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
     select.prepend(opt);
   }
 }
 
-window.openEditModal = async function(id) {
+window.openEditModal = async function (id) {
   const order = allOrders.find(o => o.id === id);
   if (!order) return;
 
@@ -1066,34 +736,91 @@ window.openEditModal = async function(id) {
   document.getElementById("editCooperationStatus").value = order.cooperationStatus || "مشتری";
   document.getElementById("editOrderDate").value = order.orderDate || "";
   document.getElementById("editEstimatedReadyDate").value = order.estimatedReadyDate || "";
+  document.getElementById("editTagsInput").value = (order.tags || []).join(', ');
 
-  await loadDropdownsForEdit(order);
+  const dd = await loadDropdownDataCached();
+  populateEditSelect("editMaterial", dd.materials, order.material || "");
+  populateEditSelect("editQuantity", dd.quantities, order.quantity || "");
+  populateEditSelect("editSize", dd.sizes, order.size || "");
+  populateEditSelect("editDesignerName", dd.designers, order.designerName || "");
+  populateEditSelect("editPrintingHouse", dd.printingHouses, order.printingHouse || "");
 
-  // Init datepickers inside modal (once)
+  editThumbnails = [...(order.thumbnails || [])];
+  renderEditThumbs();
+
   if (!editDatepickersInited) {
-    $('.pdate-edit').persianDatepicker({
-      format: 'YYYY/MM/DD',
-      initialValue: false,
-      autoClose: true,
-    });
+    $('.pdate-edit').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: false, autoClose: true });
     editDatepickersInited = true;
   }
 
   document.getElementById("editModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 };
-
-window.closeEditModal = function() {
+window.closeEditModal = function () {
   document.getElementById("editModal").classList.add("hidden");
   document.body.style.overflow = "auto";
 };
+
+// ── Edit-modal image add/remove ──
+function initEditImageHandling() {
+  const dz = document.getElementById("editDropZone");
+  const fi = document.getElementById("editFileInput");
+  dz.addEventListener("click", () => fi.click());
+  dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("dragover"); });
+  dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
+  dz.addEventListener("drop", async (e) => {
+    e.preventDefault(); dz.classList.remove("dragover");
+    await handleEditFiles(Array.from(e.dataTransfer.files));
+  });
+  fi.addEventListener("change", async (e) => { await handleEditFiles(Array.from(e.target.files)); });
+}
+async function handleEditFiles(files) {
+  if (editThumbnails.length + files.length > 2) { alert("حداکثر ۲ عکس برای هر سفارش مجاز است."); return; }
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const b64 = await compressImageFile(file, 70);
+    editThumbnails.push(b64);
+  }
+  renderEditThumbs();
+}
+window.removeEditThumb = function (idx) { editThumbnails.splice(idx, 1); renderEditThumbs(); };
+function renderEditThumbs() {
+  const row = document.getElementById("editThumbsRow");
+  row.innerHTML = editThumbnails.map((src, i) => `
+    <div class="edit-thumb-wrap">
+      <img src="${src}">
+      <span class="edit-thumb-remove" onclick="removeEditThumb(${i})">✕</span>
+    </div>`).join('');
+}
+function compressImageFile(file, targetSizeKB) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image(); img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height; const MAX = 900;
+        if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h * MAX / w); w = MAX; } else { w = Math.round(w * MAX / h); h = MAX; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        (function check(q) {
+          const dataUrl = canvas.toDataURL('image/jpeg', q);
+          const kb = (dataUrl.length * 0.75) / 1024;
+          if (kb <= targetSizeKB || q <= 0.1) resolve(dataUrl); else check(q - 0.1);
+        })(0.7);
+      };
+    };
+  });
+}
 
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const id = document.getElementById("editOrderId").value;
   const btn = document.getElementById("editSubmitBtn");
-  btn.textContent = "در حال ذخیره...";
-  btn.disabled = true;
+  btn.textContent = "در حال ذخیره..."; btn.disabled = true;
+
+  const tags = document.getElementById("editTagsInput").value.split(',').map(t => t.trim()).filter(Boolean);
 
   const updatedData = {
     receiptNumber: document.getElementById("editReceiptNumber").value,
@@ -1102,16 +829,20 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     cooperationStatus: document.getElementById("editCooperationStatus").value,
     material: document.getElementById("editMaterial").value,
     quantity: document.getElementById("editQuantity").value,
+    size: document.getElementById("editSize").value || "",
     designerName: document.getElementById("editDesignerName").value,
     printingHouse: document.getElementById("editPrintingHouse").value,
     orderDate: document.getElementById("editOrderDate").value,
     estimatedReadyDate: document.getElementById("editEstimatedReadyDate").value,
+    tags,
+    thumbnails: editThumbnails,
   };
 
   try {
     await updateDoc(doc(db, "orders", id), updatedData);
     const idx = allOrders.findIndex(o => o.id === id);
     if (idx > -1) allOrders[idx] = { ...allOrders[idx], ...updatedData };
+    setCachedRaw(ORDERS_CACHE_KEY, allOrders);
     closeEditModal();
     populateFilterDropdowns();
     renderFilteredData();
@@ -1119,44 +850,46 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   } catch (error) {
     alert("خطا در ذخیره اطلاعات!");
   } finally {
-    btn.textContent = "ذخیره تغییرات";
-    btn.disabled = false;
+    btn.textContent = "ذخیره تغییرات"; btn.disabled = false;
   }
 });
 
 // ============ ADD NEW DROPDOWN OPTION ============
-window.addNewOption = async function(categoryArrayName) {
+window.addNewOption = async function (categoryArrayName) {
   const newValue = prompt("لطفا مقدار جدید را وارد کنید:");
   if (!newValue || newValue.trim() === "") return;
   const docRef = doc(db, "settings", "dropdowns");
   try {
     await updateDoc(docRef, { [categoryArrayName]: arrayUnion(newValue.trim()) });
+    dropdownDataCache[categoryArrayName] = [...new Set([...(dropdownDataCache[categoryArrayName] || []), newValue.trim()])];
+    setCachedRaw(DROPDOWNS_CACHE_KEY, dropdownDataCache);
     alert("با موفقیت اضافه شد!");
-    // Reload dropdowns for current order in edit modal
     const currentId = document.getElementById("editOrderId").value;
     const order = allOrders.find(o => o.id === currentId) || {};
-    await loadDropdownsForEdit(order);
+    const dd = await loadDropdownDataCached();
+    populateEditSelect("editMaterial", dd.materials, order.material || "");
+    populateEditSelect("editQuantity", dd.quantities, order.quantity || "");
+    populateEditSelect("editSize", dd.sizes, order.size || "");
+    populateEditSelect("editDesignerName", dd.designers, order.designerName || "");
+    populateEditSelect("editPrintingHouse", dd.printingHouses, order.printingHouse || "");
   } catch (error) {
     try {
       await setDoc(doc(db, "settings", "dropdowns"), { [categoryArrayName]: [newValue.trim()] }, { merge: true });
       alert("با موفقیت اضافه شد!");
-    } catch (e2) {
-      alert("خطا در افزودن مقدار.");
-    }
+    } catch (e2) { alert("خطا در افزودن مقدار."); }
   }
 };
 
 // ============ QUICK STATUS UPDATES ============
-window.updateSettlement = async function(id, newStatus) {
+window.updateSettlement = async function (id, newStatus) {
   try {
     await updateDoc(doc(db, "orders", id), { settlementStatus: newStatus });
     const idx = allOrders.findIndex(o => o.id === id);
-    if (idx > -1) allOrders[idx].settlementStatus = newStatus;
+    if (idx > -1) { allOrders[idx].settlementStatus = newStatus; setCachedRaw(ORDERS_CACHE_KEY, allOrders); }
     renderFilteredData();
   } catch (error) { alert("خطا در ثبت وضعیت مالی!"); }
 };
-
-window.updateStatus = async function(id, newStatus) {
+window.updateStatus = async function (id, newStatus) {
   try {
     const updateData = { status: newStatus };
     if (newStatus === "تحویل داده شده") updateData.deliveredAt = new Date().toISOString();
@@ -1165,16 +898,18 @@ window.updateStatus = async function(id, newStatus) {
     if (idx > -1) {
       allOrders[idx].status = newStatus;
       if (newStatus === "تحویل داده شده") allOrders[idx].deliveredAt = updateData.deliveredAt;
+      setCachedRaw(ORDERS_CACHE_KEY, allOrders);
     }
   } catch (error) { alert("خطا در ذخیره وضعیت سفارش!"); }
 };
 
 // ============ DELETE ============
-window.deleteOrder = async function(id) {
+window.deleteOrder = async function (id) {
   if (!confirm("آیا از حذف دائمی این سفارش مطمئن هستید؟ دیتای حذف‌شده قابل بازیابی نیست.")) return;
   try {
     await deleteDoc(doc(db, "orders", id));
     allOrders = allOrders.filter(o => o.id !== id);
+    setCachedRaw(ORDERS_CACHE_KEY, allOrders);
     renderFilteredData();
   } catch (error) { alert("خطا در حذف سفارش!"); }
 };
@@ -1193,7 +928,7 @@ async function runAutoCleanup() {
         }
       }
     }
-  } catch (e) { }
+  } catch (e) {}
 }
 </script>
 </body>
