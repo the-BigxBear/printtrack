@@ -398,11 +398,14 @@ function populateFilterDropdowns() {
   fillSelect("filterMaterial", materials, "همه جنس‌ها");
   fillSelect("filterPrintingHouse", printingHouses, "همه چاپخانه‌ها");
 }
+function sortAlpha(items) {
+  return [...items].sort((a, b) => (a || '').localeCompare(b || '', 'fa'));
+}
 function fillSelect(id, items, allLabel) {
   const sel = document.getElementById(id);
   const current = sel.value;
   sel.innerHTML = `<option value="all">${allLabel}</option>`;
-  items.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); });
+  sortAlpha(items).forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); });
   if (current) sel.value = current;
 }
 
@@ -714,7 +717,7 @@ let editDatepickersInited = false;
 function populateEditSelect(elementId, items, currentVal) {
   const select = document.getElementById(elementId);
   select.innerHTML = "";
-  items.forEach(item => {
+  sortAlpha(items).forEach(item => {
     const opt = document.createElement("option"); opt.value = item; opt.textContent = item;
     if (item === currentVal) opt.selected = true;
     select.appendChild(opt);
