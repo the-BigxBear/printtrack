@@ -258,12 +258,13 @@ input:checked + .toggle-slider::before{ transform:translateX(-18px); }
     </div>
 
     <div class="form-group">
-      <label class="form-label">جنس کار <span id="materialHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت)</span></label>
+      <label class="form-label">جنس کار <span id="materialHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت یا با دکمه‌ی کنار)</span></label>
       <div class="flex-input-group">
         <div class="relative flex-1">
           <select id="material" class="form-input"></select>
           <input type="text" id="materialCustom" class="form-input pending-suggestion hidden" placeholder="جنس کار...">
         </div>
+        <button type="button" id="materialConfirmBtn" onclick="confirmCustomSuggestion('material')" class="btn-add hidden" title="افزودن همین مقدار به دراپ‌داون">✓</button>
         <button type="button" onclick="addNewOption('materials')" class="btn-add">+</button>
       </div>
     </div>
@@ -285,12 +286,13 @@ input:checked + .toggle-slider::before{ transform:translateX(-18px); }
     </div>
 
     <div class="form-group">
-      <label class="form-label">نام کاربر طراح <span id="designerHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت)</span></label>
+      <label class="form-label">نام کاربر طراح <span id="designerHint" class="text-[10px] font-normal text-amber-600 hidden">(پیشنهاد — تایید با ثبت یا با دکمه‌ی کنار)</span></label>
       <div class="flex-input-group">
         <div class="relative flex-1">
           <select id="designerName" class="form-input"></select>
           <input type="text" id="designerCustom" class="form-input pending-suggestion hidden" placeholder="نام طراح...">
         </div>
+        <button type="button" id="designerConfirmBtn" onclick="confirmCustomSuggestion('designer')" class="btn-add hidden" title="افزودن همین مقدار به دراپ‌داون">✓</button>
         <button type="button" onclick="addNewOption('designers')" class="btn-add">+</button>
       </div>
     </div>
@@ -450,7 +452,7 @@ const provider = new GoogleAuthProvider();
 const ALLOWED_EMAIL = "thebigxbearprint@gmail.com";
 
 // ★★★ Gemini API key — only this needs to be set by you ★★★
-const GEMINI_API_KEY = "AIzaSyBz4cTQppBKiIAlaLJfvuT9pdf8FEMOt2I";
+const GEMINI_API_KEY = "اینجا-کلید-جمنای-رو-بگذار";
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 let compressedImagesBase64 = [];
@@ -535,22 +537,28 @@ function levenshtein(a, b) {
   }
   return dp[m][n];
 }
-// Normalize by sorting words alphabetically (handles "mat doro" vs "doro mat")
-// then stripping spaces (handles "matt do ro" vs "matdoro")
-function normalizeForFuzzy(s) {
-  return (s || "").toLowerCase().trim().split(/\s+/).sort().join('')
-    .replace(/[^a-z0-9\u0600-\u06FF]/g, '');
+// Two normalization strategies, both checked at lookup time:
+//  - DIRECT: preserves word order, just strips spaces -> catches typos like "mattdoro" vs "mat doro"
+//  - SORTED: sorts words alphabetically -> catches full word-reordering like "doro mat" vs "mat doro"
+function normalizeDirect(s) {
+  return (s || "").toLowerCase().trim().replace(/\s+/g, '').replace(/[^a-z0-9\u0600-\u06FF]/g, '');
+}
+function normalizeSorted(s) {
+  return (s || "").toLowerCase().trim().split(/\s+/).sort().join('').replace(/[^a-z0-9\u0600-\u06FF]/g, '');
 }
 function fuzzyMatchLearned(rawToken, learnedMap) {
-  const normRaw = normalizeForFuzzy(rawToken);
-  if (!normRaw) return null;
-  if (learnedMap[normRaw]) return learnedMap[normRaw];
+  const direct = normalizeDirect(rawToken);
+  const sorted = normalizeSorted(rawToken);
+  if (!direct) return null;
+  if (learnedMap[direct]) return learnedMap[direct];
+  if (learnedMap[sorted]) return learnedMap[sorted];
+
   let best = null, bestDist = Infinity;
   for (const key in learnedMap) {
-    const dist = levenshtein(normRaw, key);
+    const dist = Math.min(levenshtein(direct, key), levenshtein(sorted, key));
     if (dist < bestDist) { bestDist = dist; best = learnedMap[key]; }
   }
-  const threshold = Math.max(2, Math.floor(normRaw.length * 0.3));
+  const threshold = Math.max(2, Math.floor(direct.length * 0.3));
   return (best && bestDist <= threshold) ? best : null;
 }
 
@@ -572,14 +580,18 @@ async function loadLearnedMappings() {
 }
 
 async function saveLearnedMapping(type, rawToken, confirmedValue) {
-  const normKey = normalizeForFuzzy(rawToken);
-  if (!normKey || !confirmedValue) return;
+  const directKey = normalizeDirect(rawToken);
+  const sortedKey = normalizeSorted(rawToken);
+  if (!directKey || !confirmedValue) return;
   const field = type === 'material' ? 'materialMap' : 'designerMap';
-  learnedMappings[field][normKey] = confirmedValue;
+  learnedMappings[field][directKey] = confirmedValue;
+  if (sortedKey !== directKey) learnedMappings[field][sortedKey] = confirmedValue;
   setCached('cache_learnedMappings', learnedMappings);
   try {
     const docRef = doc(db, "settings", "learnedMappings");
-    await updateDoc(docRef, { [`${field}.${normKey}`]: confirmedValue });
+    const updates = { [`${field}.${directKey}`]: confirmedValue };
+    if (sortedKey !== directKey) updates[`${field}.${sortedKey}`] = confirmedValue;
+    await updateDoc(docRef, updates);
   } catch (e) { console.warn("Could not persist learned mapping:", e); }
 }
 
@@ -648,14 +660,18 @@ async function handleFiles(items) {
     alert("شما حداکثر می‌توانید ۲ عکس آپلود کنید.");
     return;
   }
-  const compressed = await Promise.all(items.map(it => compressAndGetBase64(it.file, 70)));
-  compressed.forEach(b64 => { if (b64) compressedImagesBase64.push(b64); });
-  renderPreviews();
 
   const first = items[0];
   const filename = first.file.name.replace(/\.[^.]+$/, '');
   const folderFallback = first.folderName || (first.file.webkitRelativePath ? first.file.webkitRelativePath.split('/').slice(-2, -1)[0] : null);
-  await parseAndApply(filename, folderFallback);
+
+  // Compression and parsing are independent — run them concurrently instead of sequentially.
+  const compressionPromise = Promise.all(items.map(it => compressAndGetBase64(it.file, 70)));
+  const parsePromise = parseAndApply(filename, folderFallback);
+
+  const [compressed] = await Promise.all([compressionPromise, parsePromise]);
+  compressed.forEach(b64 => { if (b64) compressedImagesBase64.push(b64); });
+  renderPreviews();
 }
 
 // ─── LOCAL PARSING PIPELINE ───────────────────────────────────────────────────
@@ -855,22 +871,46 @@ function showMaterialCustom(value) {
   document.getElementById("material").classList.add("hidden");
   const c = document.getElementById("materialCustom"); c.classList.remove("hidden"); c.value = value;
   document.getElementById("materialHint").classList.remove("hidden");
+  document.getElementById("materialConfirmBtn").classList.remove("hidden");
 }
 function hideMaterialCustom() {
   document.getElementById("material").classList.remove("hidden");
   document.getElementById("materialCustom").classList.add("hidden");
   document.getElementById("materialHint").classList.add("hidden");
+  document.getElementById("materialConfirmBtn").classList.add("hidden");
 }
 function showDesignerCustom(value) {
   document.getElementById("designerName").classList.add("hidden");
   const c = document.getElementById("designerCustom"); c.classList.remove("hidden"); c.value = value;
   document.getElementById("designerHint").classList.remove("hidden");
+  document.getElementById("designerConfirmBtn").classList.remove("hidden");
 }
 function hideDesignerCustom() {
   document.getElementById("designerName").classList.remove("hidden");
   document.getElementById("designerCustom").classList.add("hidden");
   document.getElementById("designerHint").classList.add("hidden");
+  document.getElementById("designerConfirmBtn").classList.add("hidden");
 }
+
+// Lets the user immediately commit an AI/local-suggested value to the dropdown
+// right from the field, instead of waiting for final form submission.
+window.confirmCustomSuggestion = async function (type) {
+  if (type === 'material') {
+    const value = document.getElementById("materialCustom").value.trim();
+    if (!value) return;
+    await addOptionToFirestoreAndCache('materials', value);
+    if (pendingSuggestions.material) await saveLearnedMapping('material', pendingSuggestions.material.raw, value);
+    setSelectValue("material", value);
+    hideMaterialCustom();
+  } else if (type === 'designer') {
+    const value = document.getElementById("designerCustom").value.trim();
+    if (!value) return;
+    await addOptionToFirestoreAndCache('designers', value);
+    if (pendingSuggestions.designer) await saveLearnedMapping('designer', pendingSuggestions.designer.raw, value);
+    setSelectValue("designerName", value);
+    hideDesignerCustom();
+  }
+};
 
 // ─── AI STATUS BAR ───────────────────────────────────────────────────────────
 function setAIStatus(type, text) {
@@ -909,12 +949,16 @@ function populateAllSelects() {
   populateSelect("printingHouse", dropdownData.printingHouses);
   populateSelect("size", dropdownData.sizes);
 }
+// Persian-aware alphabetical sort, used everywhere a dropdown is populated.
+function sortAlpha(items) {
+  return [...items].sort((a, b) => (a || '').localeCompare(b || '', 'fa'));
+}
 function populateSelect(elementId, items) {
   const select = document.getElementById(elementId);
   if (!select) return;
   const current = select.value;
   select.innerHTML = "";
-  items.forEach(item => {
+  sortAlpha(items).forEach(item => {
     const o = document.createElement("option"); o.value = item; o.textContent = item; select.appendChild(o);
   });
   if (current) select.value = current;
@@ -1110,14 +1154,13 @@ async function processBatchFiles(items) {
     }
   }
 
-  // Parse each group locally first (using first file in group as representative)
-  for (const g of groups) {
+  // Parse each group locally first (synchronous, instant — no need to await anything here)
+  groups.forEach(g => {
     const repFile = g.files[0];
     const filename = repFile.file.name.replace(/\.[^.]+$/, '');
     const folderFallback = repFile.folderName || (repFile.file.webkitRelativePath ? repFile.file.webkitRelativePath.split('/').slice(-2, -1)[0] : null);
     g.parsed = parseFilenameLocal(filename, folderFallback);
-    g.thumbs = await Promise.all(g.files.map(f => compressAndGetBase64(f.file, 70)));
-  }
+  });
 
   // Collect groups that still need AI (only if toggle on)
   const unresolved = [];
@@ -1127,18 +1170,25 @@ async function processBatchFiles(items) {
     }
   });
 
-  if (unresolved.length > 0 && isAIEnabled()) {
-    statusEl.querySelector('span').textContent = `در حال تحلیل ${unresolved.length} مورد با هوش مصنوعی (یک درخواست)...`;
-    try {
-      const results = await callGeminiBatch(unresolved);
-      results.forEach(r => {
-        const g = groups[r.index];
-        if (!g.parsed.materialMatched && r.materialMatched) { g.parsed.material = r.material; g.parsed.materialMatched = true; saveLearnedMapping('material', g.parsed.materialRaw, r.material); }
-        else if (!g.parsed.materialMatched) { g.parsed.material = r.material || g.parsed.materialRaw; }
-        if (!g.parsed.designerMatched && r.designerMatched) { g.parsed.designer = r.designer; g.parsed.designerMatched = true; saveLearnedMapping('designer', g.parsed.designerRaw, r.designer); }
-        else if (!g.parsed.designerMatched) { g.parsed.designer = r.designer || g.parsed.designerRaw; }
-      });
-    } catch (err) { console.error("Batch AI error:", err); }
+  // Thumbnail compression (all groups, all files, fully parallel) and the single
+  // batched AI call are independent — run them concurrently rather than sequentially.
+  if (unresolved.length > 0 && isAIEnabled()) statusEl.querySelector('span').textContent = `در حال فشرده‌سازی عکس‌ها و تحلیل ${unresolved.length} مورد با هوش مصنوعی (یک درخواست)...`;
+  else statusEl.querySelector('span').textContent = "در حال فشرده‌سازی عکس‌ها...";
+
+  const compressionPromise = Promise.all(groups.map(g => Promise.all(g.files.map(f => compressAndGetBase64(f.file, 70)))));
+  const aiPromise = (unresolved.length > 0 && isAIEnabled()) ? callGeminiBatch(unresolved).catch(err => { console.error("Batch AI error:", err); return null; }) : Promise.resolve(null);
+
+  const [allThumbs, aiResults] = await Promise.all([compressionPromise, aiPromise]);
+  groups.forEach((g, i) => { g.thumbs = allThumbs[i]; });
+
+  if (aiResults) {
+    aiResults.forEach(r => {
+      const g = groups[r.index];
+      if (!g.parsed.materialMatched && r.materialMatched) { g.parsed.material = r.material; g.parsed.materialMatched = true; saveLearnedMapping('material', g.parsed.materialRaw, r.material); }
+      else if (!g.parsed.materialMatched) { g.parsed.material = r.material || g.parsed.materialRaw; }
+      if (!g.parsed.designerMatched && r.designerMatched) { g.parsed.designer = r.designer; g.parsed.designerMatched = true; saveLearnedMapping('designer', g.parsed.designerRaw, r.designer); }
+      else if (!g.parsed.designerMatched) { g.parsed.designer = r.designer || g.parsed.designerRaw; }
+    });
   }
 
   batchGroups = groups;
@@ -1202,7 +1252,7 @@ function showBatchGroup() {
 }
 function populateEditLikeSelect(id, items) {
   const sel = document.getElementById(id); sel.innerHTML = "";
-  items.forEach(i => { const o = document.createElement("option"); o.value = i; o.textContent = i; sel.appendChild(o); });
+  sortAlpha(items).forEach(i => { const o = document.createElement("option"); o.value = i; o.textContent = i; sel.appendChild(o); });
 }
 function setEditLikeSelectValue(id, val) {
   const sel = document.getElementById(id);
