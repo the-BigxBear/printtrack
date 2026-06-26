@@ -118,6 +118,7 @@ body { background-color:var(--paper); background-image:radial-gradient(rgba(34,3
           <option value="all">همه موارد</option>
           <option value="سفارش داده شده">سفارش داده شده</option>
           <option value="در پروسه تولید">در پروسه تولید</option>
+          <option value="آماده تحویل">آماده تحویل</option>
           <option value="درحال ارسال  ">درحال ارسال  </option>
           <option value="تحویل داده شده">تحویل داده شده</option>
           <option value="کنسل شده">کنسل شده</option>
@@ -317,13 +318,31 @@ let activeFilters = {
   search: '', settlement: 'all', status: 'all', designer: 'all', material: 'all',
   printingHouse: 'all', orderDate: '', deliveryDate: '',
 };
+let appInitialized = false;
+
+// ============ OPTIMISTIC INSTANT RENDER FROM CACHE ============
+// Firebase Auth confirmation itself takes a network round-trip (slower behind
+// VPN/proxy). We don't need to wait for it to show data we already have cached —
+// show it immediately, then quietly verify auth + fetch fresh data in the background.
+(function renderFromCacheImmediately() {
+  const cached = getCachedRaw(ORDERS_CACHE_KEY);
+  if (cached && cached.data && cached.data.length > 0) {
+    allOrders = cached.data;
+    document.getElementById("authMessage").style.display = "none";
+    document.getElementById("appContainer").classList.remove("hidden");
+    document.getElementById("staleBadge").classList.remove("hidden");
+    if (!appInitialized) { initAppFeatures(); appInitialized = true; }
+    populateFilterDropdowns();
+    renderFilteredData();
+  }
+})();
 
 // ============ AUTH ============
 onAuthStateChanged(auth, (user) => {
   if (user && user.email === ALLOWED_EMAIL) {
     document.getElementById("authMessage").style.display = "none";
     document.getElementById("appContainer").classList.remove("hidden");
-    initAppFeatures();
+    if (!appInitialized) { initAppFeatures(); appInitialized = true; }
     loadOrders(false);
     runAutoCleanup();
   } else {
@@ -545,7 +564,7 @@ function renderDesktopTable(data) {
       <td class="p-3 text-center">${imagesHtml}</td>
       <td class="p-3 text-center">
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select outline-none focus:border-accent font-semibold text-center w-full max-w-[130px]">
-          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+          ${['سفارش داده شده', 'در پروسه تولید', 'آماده تحویل', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </td>
       <td class="p-3 text-center">
@@ -583,6 +602,7 @@ function renderMobileCards(data) {
     const statusColors = {
       'سفارش داده شده': 'bg-blue-50 text-blue-700 border-blue-200',
       'در پروسه تولید': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      'آماده تحویل': 'bg-teal-50 text-teal-700 border-teal-200',
       'درحال ارسال  ': 'bg-orange-50 text-orange-700 border-orange-200',
       'تحویل داده شده': 'bg-green-50 text-green-700 border-green-200',
       'کنسل شده': 'bg-red-50 text-red-600 border-red-200',
@@ -620,7 +640,7 @@ function renderMobileCards(data) {
           <option value="تسویه شده" ${order.settlementStatus === 'تسویه شده' ? 'selected' : ''}>تسویه شده</option>
         </select>
         <select onchange="updateStatus('${order.id}', this.value)" class="status-select flex-1 min-w-[130px]">
-          ${['سفارش داده شده', 'در پروسه تولید', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+          ${['سفارش داده شده', 'در پروسه تولید', 'آماده تحویل', 'درحال ارسال  ', 'تحویل داده شده', 'کنسل شده'].map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </div>
       <div class="flex gap-2 mt-2">
